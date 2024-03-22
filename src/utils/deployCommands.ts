@@ -1,6 +1,6 @@
 import { Client, REST, Routes } from 'discord.js';
 
-export default async function deployCommands(client: Client) {
+export async function deployCommands(client: Client) {
 	const rest = new REST().setToken(process.env.BOT_TOKEN!);
 
 	try {
