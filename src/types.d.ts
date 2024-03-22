@@ -6,3 +6,9 @@ declare module 'discord.js' {
 		commands: Collection<string, Command>;
 	}
 }
+
+export interface GenericResponse<T> {
+	status: number;
+	reason: string;
+	response: T;
+}
