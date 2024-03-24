@@ -25,7 +25,7 @@ type ServerStatus =
 export default {
 	data: new SlashCommandBuilder()
 		.setName('check')
-		.setDescription('Round durumunu kontrol eder.'),
+		.setDescription('Round durumunu gösterir.'),
 	async execute(interaction) {
 		try {
 			const genericResponse = (
