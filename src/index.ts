@@ -13,6 +13,7 @@ async function main() {
 	});
 
 	client.commands = new Collection();
+	client.autocompleteCache = new Collection();
 
 	for (const command of commands) {
 		client.commands.set(command.data.name, command);

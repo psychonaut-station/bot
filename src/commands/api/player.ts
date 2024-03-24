@@ -65,7 +65,11 @@ export default {
 					'Bir meslekte en fazla süreye sahip olan 15 oyuncuyu gösterir.'
 				)
 				.addStringOption((option) =>
-					option.setName('job').setDescription('Mesleğin adı').setRequired(true)
+					option
+						.setName('job')
+						.setDescription('Mesleğin adı')
+						.setRequired(true)
+						.setAutocomplete(true)
 				)
 		),
 	async execute(interaction) {
@@ -190,6 +194,45 @@ export default {
 
 				break;
 			}
+		}
+	},
+	async autocomplete(interaction) {
+		const focusedValue = interaction.options.getFocused(true);
+
+		if (focusedValue.name === 'job') {
+			const cache = interaction.client.autocompleteCache.get('job');
+
+			let jobs: string[] = [];
+
+			if (cache && cache.timestamp > Date.now() - 1000 * 60 * 30) {
+				jobs = cache.values;
+			} else {
+				const genericResponse = (
+					await axios.get<Response<string[]>>(endpoint('player/top'), {
+						headers: { 'X-API-KEY': process.env.API_KEY },
+					})
+				).data;
+
+				if (genericResponse?.status === 1) {
+					jobs = genericResponse.response;
+					interaction.client.autocompleteCache.set('job', {
+						values: jobs,
+						timestamp: Date.now(),
+					});
+				} else if (cache) {
+					jobs = cache.values;
+				}
+			}
+
+			const filteredJobs = jobs
+				.filter((job) =>
+					job.toLowerCase().startsWith(focusedValue.value.toLowerCase())
+				)
+				.slice(0, 25);
+
+			await interaction.respond(
+				filteredJobs.map((job) => ({ name: job, value: job }))
+			);
 		}
 	},
 } satisfies Command;
