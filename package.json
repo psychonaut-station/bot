@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "pnpm build && node dist/index.js",
+    "start": "pnpm build && node dist/bundle.js",
     "build": "rollup -c",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
