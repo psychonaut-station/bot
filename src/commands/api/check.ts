@@ -1,8 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
-import axios from 'axios';
 import { Command } from '..';
-import { GenericResponse as Response } from '../../types';
-import { endpoint } from '../../utils/endpoint';
+import { get } from '../../utils/api';
 
 type ServerStatus =
 	| {
@@ -28,12 +26,10 @@ export default {
 		.setDescription('Round durumunu gösterir.'),
 	async execute(interaction) {
 		try {
-			const genericResponse = (
-				await axios.get<Response<ServerStatus[]>>(endpoint('server'))
-			).data;
+			const { status, response } = await get<ServerStatus[]>('server', false);
 
-			if (genericResponse.status === 1) {
-				const server = genericResponse.response[0];
+			if (status === 1) {
+				const server = response[0];
 
 				if (server.server_status === 1) {
 					await interaction.reply(
@@ -43,7 +39,9 @@ export default {
 					await interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
 				}
 			} else {
-				throw new Error();
+				await interaction.reply(
+					'Sunucu bilgileri alınamadı. Daha sonra tekrar deneyin.'
+				);
 			}
 		} catch (_) {
 			await interaction.reply(
