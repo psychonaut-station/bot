@@ -181,8 +181,15 @@ export class PlayerCommand implements Command {
 				);
 
 				if (status === 1) {
-					const formatEntry = (entry: Entry) =>
-						`${entry.ckey}: ${Math.floor(entry.minutes / 60)} saat`;
+					const formatEntry = (entry: Entry) => {
+						const hours = Math.floor(entry.minutes / 60);
+
+						if (hours === 0) {
+							return `${entry.ckey}: ${entry.minutes} dakika`;
+						}
+
+						return `${entry.ckey}: ${hours} saat`;
+					};
 
 					await interaction.editReply(
 						top.map(formatEntry).join('\n') || 'Meslek bilgileri alınamadı.'
