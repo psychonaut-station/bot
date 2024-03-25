@@ -2,8 +2,8 @@ import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
 import { deployCommands } from './utils/deployCommands';
 
-import { commands } from './commands';
-import { events } from './events';
+import * as commands from './commands';
+import * as events from './events';
 
 import 'dotenv/config';
 
@@ -13,17 +13,20 @@ async function main() {
 	});
 
 	client.commands = new Collection();
-	client.autocompleteCache = new Collection();
 
-	for (const command of commands) {
-		client.commands.set(command.data.name, command);
+	for (const Command of Object.values(commands)) {
+		const command = new Command();
+		client.commands.set(command.builder.name, command);
 	}
 
-	for (const event of events) {
-		if (event.once) {
+	for (const Event of Object.values(events)) {
+		const event = new Event();
+		if ('once' in event && event.once) {
+			// @ts-ignore
 			client.once(event.name, (...args) => event.execute(...args));
 		} else {
-			client.on(event.name, (...args) => event.execute(...args));
+			// @ts-ignore
+			client.on(event.name as any, (...args) => event.execute(...args));
 		}
 	}
 

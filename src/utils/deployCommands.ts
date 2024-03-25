@@ -4,7 +4,7 @@ export async function deployCommands(client: Client) {
 	const rest = new REST().setToken(process.env.BOT_TOKEN!);
 
 	try {
-		const commands = client.commands.map((command) => command.data.toJSON());
+		const commands = client.commands.map((command) => command.builder.toJSON());
 
 		console.log(
 			`Started refreshing ${commands.length} application (/) commands.`

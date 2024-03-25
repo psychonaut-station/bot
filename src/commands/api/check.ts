@@ -1,5 +1,5 @@
-import { SlashCommandBuilder } from 'discord.js';
-import { Command } from '..';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { Command } from '../../types';
 import { get } from '../../utils/api';
 
 type ServerStatus =
@@ -20,11 +20,11 @@ type ServerStatus =
 			server_status: 0;
 	  };
 
-export default {
-	data: new SlashCommandBuilder()
+export class CheckCommand implements Command {
+	public builder = new SlashCommandBuilder()
 		.setName('check')
-		.setDescription('Round durumunu gösterir.'),
-	async execute(interaction) {
+		.setDescription('Round durumunu gösterir.');
+	public async execute(interaction: ChatInputCommandInteraction) {
 		try {
 			const { status, response } = await get<ServerStatus[]>('server', false);
 
@@ -48,5 +48,5 @@ export default {
 				'Sunucu bilgileri alınamadı. Daha sonra tekrar deneyin.'
 			);
 		}
-	},
-} satisfies Command;
+	}
+}
