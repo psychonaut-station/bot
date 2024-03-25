@@ -10,7 +10,7 @@ import json from '@rollup/plugin-json';
 const config = {
 	input: 'src/index.ts',
 	output: {
-		file: 'dist/index.js',
+		file: 'dist/bundle.js',
 		format: 'cjs',
 	},
 	external: ['discord.js'],
