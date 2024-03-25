@@ -4,18 +4,18 @@ import {
 	CommandInteraction,
 	Events,
 } from 'discord.js';
-import type { Event } from '.';
+import { Event } from '../types';
 
-export default {
-	name: Events.InteractionCreate,
-	async execute(interaction: CommandInteraction) {
+export class InteractionCreateEvent implements Event {
+	public name = Events.InteractionCreate;
+	public async execute(interaction: CommandInteraction) {
 		if (interaction.isChatInputCommand()) {
 			await handleChatInputCommand(interaction);
 		} else if (interaction.isAutocomplete()) {
 			await handleAutocomplete(interaction);
 		}
-	},
-} satisfies Event;
+	}
+}
 
 async function handleChatInputCommand(
 	interaction: ChatInputCommandInteraction

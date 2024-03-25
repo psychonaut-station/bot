@@ -1,10 +1,10 @@
 import { Events, Client } from 'discord.js';
-import type { Event } from '.';
+import { Event } from '../types';
 
-export default {
-	name: Events.ClientReady,
-	once: true,
-	execute(client: Client) {
+export class ReadyEvent implements Event {
+	public name = Events.ClientReady;
+	public once = true;
+	public execute(client: Client) {
 		console.log(`Ready! Logged in as ${client.user!.tag}`);
-	},
-} satisfies Event;
+	}
+}

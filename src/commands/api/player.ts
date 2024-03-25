@@ -1,7 +1,12 @@
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { Command } from '..';
-import { parseDate, timestamp } from '../../utils/date';
+import {
+	AutocompleteInteraction,
+	ChatInputCommandInteraction,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js';
+import { Command } from '../../types';
 import { get } from '../../utils/api';
+import { parseDate, timestamp } from '../../utils/date';
 
 type Player = {
 	ckey: string;
@@ -29,8 +34,8 @@ type Ban = {
 	unbanned_ckey: string | null;
 };
 
-export default {
-	data: new SlashCommandBuilder()
+export class PlayerCommand implements Command {
+	public builder = new SlashCommandBuilder()
 		.setName('player')
 		.setDescription('Oyuncu hakkında bilgileri gösterir.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
@@ -79,8 +84,9 @@ export default {
 						.setRequired(true)
 						.setAutocomplete(true)
 				)
-		),
-	async execute(interaction) {
+		);
+	public jobs?: string[];
+	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'info': {
 				const ephemeral = !interaction.options.getBoolean('public');
@@ -188,28 +194,25 @@ export default {
 				break;
 			}
 		}
-	},
-	async autocomplete(interaction) {
+	}
+	public async autocomplete(interaction: AutocompleteInteraction) {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'job') {
-			const cache = interaction.client.autocompleteCache.get('job');
+			let jobs: string[];
 
-			let jobs: string[] = [];
-
-			if (cache && cache.timestamp > Date.now() - 1000 * 60 * 30) {
-				jobs = cache.values;
+			if (this.jobs) {
+				jobs = this.jobs;
 			} else {
 				const { status, response } = await get<string[]>('player/top');
 
 				if (status === 1) {
 					jobs = response;
-					interaction.client.autocompleteCache.set('job', {
-						values: jobs,
-						timestamp: Date.now(),
-					});
-				} else if (cache) {
-					jobs = cache.values;
+					this.jobs = jobs;
+					setTimeout(() => delete this.jobs, 1000 * 60 * 30);
+				} else {
+					await interaction.respond([]);
+					return;
 				}
 			}
 
@@ -223,8 +226,8 @@ export default {
 				filteredJobs.map((job) => ({ name: job, value: job }))
 			);
 		}
-	},
-} satisfies Command;
+	}
+}
 
 type SimplifiedBan = {
 	ckey: string | null;

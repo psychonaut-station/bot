@@ -1,12 +1,16 @@
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { Command } from '..';
+import {
+	ChatInputCommandInteraction,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js';
+import { Command } from '../../types';
 
-export default {
-	data: new SlashCommandBuilder()
+export class PingCommand implements Command {
+	public builder = new SlashCommandBuilder()
 		.setName('ping')
 		.setDescription('Replies with Pong!')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
-	async execute(interaction) {
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels);
+	public async execute(interaction: ChatInputCommandInteraction) {
 		await interaction.reply('Pong!');
-	},
-} satisfies Command;
+	}
+}
