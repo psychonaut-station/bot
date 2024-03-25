@@ -1,9 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Command } from '..';
-import axios from 'axios';
-import { GenericResponse as Response } from '../../types';
-import { endpoint } from '../../utils/endpoint';
 import { parseDate, timestamp } from '../../utils/date';
+import { get } from '../../utils/api';
 
 type Player = {
 	ckey: string;
@@ -46,6 +44,11 @@ export default {
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
 				)
+				.addBooleanOption((option) =>
+					option
+						.setName('public')
+						.setDescription('Mesajı size özel yerine herkese açık yapar.')
+				)
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -56,6 +59,11 @@ export default {
 						.setName('ckey')
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
+				)
+				.addBooleanOption((option) =>
+					option
+						.setName('public')
+						.setDescription('Mesajı size özel yerine herkese açık yapar.')
 				)
 		)
 		.addSubcommand((subcommand) =>
@@ -75,22 +83,17 @@ export default {
 	async execute(interaction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'info': {
-				await interaction.deferReply({ ephemeral: true });
+				const ephemeral = !interaction.options.getBoolean('public');
+				await interaction.deferReply({ ephemeral });
+
 				const ckey = interaction.options.getString('ckey');
 
 				try {
-					const genericResponse = (
-						await axios.get<Response<Player>>(
-							endpoint(`player/?ckey=${ckey}`),
-							{
-								headers: { 'X-API-KEY': process.env.API_KEY },
-							}
-						)
-					).data;
+					const { status, response } = await get<Player>(
+						`player/?ckey=${ckey}`
+					);
 
-					if (genericResponse?.status === 1) {
-						const response = genericResponse.response;
-
+					if (status === 1) {
 						const firstSeen = parseDate(response.first_seen);
 						const lastSeen = parseDate(response.last_seen);
 						const byondAge = response.byond_age
@@ -98,7 +101,7 @@ export default {
 							: null;
 
 						await interaction.editReply(
-							`Ckey: ${response.ckey}\nByond Key: ${response.byond_key}\nİlk Görülen: ${timestamp(firstSeen) + ' ' + timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen) + ' ' + timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${response.first_seen_round}\nSon Görülen Round: ${response.last_seen_round}\nIP: ||${response.ip}||\nCID: ||${response.cid}||\nByond'a Katılma Tarihi: ${byondAge ? timestamp(byondAge, 'D') + ' ' + timestamp(byondAge, 'R') : 'Bilinmiyor'}`
+							`Ckey: ${response.ckey}\nByond Adı: ${response.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${response.first_seen_round}\nSon Görülen Round: ${response.last_seen_round}\nIP: gösterilmiyor\nCID: gösterilmiyor\nByond'a Katılma Tarihi: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
 						);
 					} else {
 						await interaction.editReply('Oyuncu bilgileri alınamadı.');
@@ -110,21 +113,16 @@ export default {
 				break;
 			}
 			case 'ban': {
-				await interaction.deferReply({ ephemeral: true });
+				const ephemeral = !interaction.options.getBoolean('public');
+				await interaction.deferReply({ ephemeral });
+
 				const ckey = interaction.options.getString('ckey');
 
-				const genericResponse = (
-					await axios.get<Response<Ban[]>>(
-						endpoint(`player/ban/?ckey=${ckey}`),
-						{
-							headers: { 'X-API-KEY': process.env.API_KEY },
-						}
-					)
-				).data;
+				const { status, response: bans } = await get<Ban[]>(
+					`player/ban/?ckey=${ckey}`
+				);
 
-				if (genericResponse?.status === 1) {
-					const bans = genericResponse.response;
-
+				if (status === 1) {
 					if (bans.length === 0) {
 						await interaction.editReply(
 							'Oyuncunun ban geçmişi bulunmamaktadır.'
@@ -150,7 +148,7 @@ export default {
 					const simplified = simplifyBans(activeBans);
 
 					const formatBan = (ban: SimplifiedBan) =>
-						`Ckey: ${ban.ckey}\nBan Zamanı: ${timestamp(ban.bantime) + ' ' + timestamp(ban.bantime, 'R')}\nRound ID: ${ban.round_id ?? 'Yok'}\nRoller: ${ban.roles.join(', ') || 'Yok'}\nBiteceği Zaman: ${ban.expiration_time ? timestamp(ban.expiration_time) + ' ' + timestamp(ban.expiration_time, 'R') : 'Kalıcı'}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDeğiştirmeler: ${ban.edits ?? 'Yok'}`;
+						`Ckey: ${ban.ckey}\nBan Tarihi: ${timestamp(ban.bantime, 'R')}\nRound ID: ${ban.round_id ?? 'yok'}\nRoller: ${ban.roles.join(', ') || 'yok'}\nBitiş Tarihi: ${ban.expiration_time ? timestamp(ban.expiration_time, 'R') : 'kalıcı'}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDüzenlemeler: ${ban.edits ?? 'yok'}`;
 
 					await interaction.editReply(formatBan(simplified.shift()!));
 
@@ -170,20 +168,15 @@ export default {
 				await interaction.deferReply();
 				const job = interaction.options.getString('job');
 
-				const genericResponse = (
-					await axios.get<Response<{ ckey: string; minutes: number }[]>>(
-						endpoint(`player/top/?job=${job}`),
-						{
-							headers: { 'X-API-KEY': process.env.API_KEY },
-						}
-					)
-				).data;
+				type Entry = { ckey: string; minutes: number };
 
-				if (genericResponse?.status === 1) {
-					const top = genericResponse.response;
+				const { status, response: top } = await get<Entry[]>(
+					`player/top/?job=${job}`
+				);
 
-					const formatEntry = (top: { ckey: string; minutes: number }) =>
-						`${top.ckey}: ${Math.floor(top.minutes / 60)} saat`;
+				if (status === 1) {
+					const formatEntry = (entry: Entry) =>
+						`${entry.ckey}: ${Math.floor(entry.minutes / 60)} saat`;
 
 					await interaction.editReply(
 						top.map(formatEntry).join('\n') || 'Meslek bilgileri alınamadı.'
@@ -207,14 +200,10 @@ export default {
 			if (cache && cache.timestamp > Date.now() - 1000 * 60 * 30) {
 				jobs = cache.values;
 			} else {
-				const genericResponse = (
-					await axios.get<Response<string[]>>(endpoint('player/top'), {
-						headers: { 'X-API-KEY': process.env.API_KEY },
-					})
-				).data;
+				const { status, response } = await get<string[]>('player/top');
 
-				if (genericResponse?.status === 1) {
-					jobs = genericResponse.response;
+				if (status === 1) {
+					jobs = response;
 					interaction.client.autocompleteCache.set('job', {
 						values: jobs,
 						timestamp: Date.now(),
