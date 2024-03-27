@@ -1,5 +1,4 @@
 import {
-	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -38,7 +37,7 @@ export class PlayerCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('player')
 		.setDescription('Oyuncu hakkında bilgileri gösterir.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('info')
@@ -82,22 +81,7 @@ export class PlayerCommand implements Command {
 							{ name: 'Hayır', value: 'false' }
 						)
 				)
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('top')
-				.setDescription(
-					'Bir meslekte en fazla süreye sahip olan 15 oyuncuyu gösterir.'
-				)
-				.addStringOption((option) =>
-					option
-						.setName('job')
-						.setDescription('Mesleğin adı')
-						.setRequired(true)
-						.setAutocomplete(true)
-				)
 		);
-	public jobs?: string[];
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'info': {
@@ -184,68 +168,6 @@ export class PlayerCommand implements Command {
 
 				break;
 			}
-			case 'top': {
-				await interaction.deferReply();
-				const job = interaction.options.getString('job');
-
-				type Entry = { ckey: string; minutes: number };
-
-				const { status, response: top } = await get<Entry[]>(
-					`player/top/?job=${job}`
-				);
-
-				if (status === 1) {
-					const formatEntry = (entry: Entry) => {
-						const hours = Math.floor(entry.minutes / 60);
-
-						if (hours === 0) {
-							return `${entry.ckey}: ${entry.minutes} dakika`;
-						}
-
-						return `${entry.ckey}: ${hours} saat`;
-					};
-
-					await interaction.editReply(
-						top.map(formatEntry).join('\n') || 'Meslek bilgileri alınamadı.'
-					);
-				} else {
-					await interaction.editReply('Meslek bilgileri alınamadı.');
-				}
-
-				break;
-			}
-		}
-	}
-	public async autocomplete(interaction: AutocompleteInteraction) {
-		const focusedValue = interaction.options.getFocused(true);
-
-		if (focusedValue.name === 'job') {
-			let jobs: string[];
-
-			if (this.jobs) {
-				jobs = this.jobs;
-			} else {
-				const { status, response } = await get<string[]>('player/top');
-
-				if (status === 1) {
-					jobs = response;
-					this.jobs = jobs;
-					setTimeout(() => delete this.jobs, 1000 * 60 * 30);
-				} else {
-					await interaction.respond([]);
-					return;
-				}
-			}
-
-			const filteredJobs = jobs
-				.filter((job) =>
-					job.toLowerCase().startsWith(focusedValue.value.toLowerCase())
-				)
-				.slice(0, 25);
-
-			await interaction.respond(
-				filteredJobs.map((job) => ({ name: job, value: job }))
-			);
 		}
 	}
 }
