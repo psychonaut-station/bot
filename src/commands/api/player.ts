@@ -49,10 +49,16 @@ export class PlayerCommand implements Command {
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
 				)
-				.addBooleanOption((option) =>
+				.addStringOption((option) =>
 					option
-						.setName('public')
-						.setDescription('Mesajı size özel yerine herkese açık yapar.')
+						.setName('ephemeral')
+						.setDescription(
+							'Mesajı sadece siz görebilirsiniz. Varsayılan: Evet'
+						)
+						.setChoices(
+							{ name: 'Evet', value: 'true' },
+							{ name: 'Hayır', value: 'false' }
+						)
 				)
 		)
 		.addSubcommand((subcommand) =>
@@ -65,10 +71,16 @@ export class PlayerCommand implements Command {
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
 				)
-				.addBooleanOption((option) =>
+				.addStringOption((option) =>
 					option
-						.setName('public')
-						.setDescription('Mesajı size özel yerine herkese açık yapar.')
+						.setName('ephemeral')
+						.setDescription(
+							'Mesajı sadece siz görebilirsiniz. Varsayılan: Evet'
+						)
+						.setChoices(
+							{ name: 'Evet', value: 'true' },
+							{ name: 'Hayır', value: 'false' }
+						)
 				)
 		)
 		.addSubcommand((subcommand) =>
@@ -89,7 +101,8 @@ export class PlayerCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'info': {
-				const ephemeral = !interaction.options.getBoolean('public');
+				const ephemeral =
+					interaction.options.getString('ephemeral') !== 'false';
 				await interaction.deferReply({ ephemeral });
 
 				const ckey = interaction.options.getString('ckey');
@@ -119,7 +132,8 @@ export class PlayerCommand implements Command {
 				break;
 			}
 			case 'ban': {
-				const ephemeral = !interaction.options.getBoolean('public');
+				const ephemeral =
+					interaction.options.getString('ephemeral') !== 'false';
 				await interaction.deferReply({ ephemeral });
 
 				const ckey = interaction.options.getString('ckey');
