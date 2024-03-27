@@ -1,4 +1,5 @@
 import {
+	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -47,6 +48,7 @@ export class PlayerCommand implements Command {
 						.setName('ckey')
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
+						.setAutocomplete(true)
 				)
 				.addStringOption((option) =>
 					option
@@ -69,6 +71,7 @@ export class PlayerCommand implements Command {
 						.setName('ckey')
 						.setDescription("Oyuncunun ckey'i")
 						.setRequired(true)
+						.setAutocomplete(true)
 				)
 				.addStringOption((option) =>
 					option
@@ -104,7 +107,7 @@ export class PlayerCommand implements Command {
 							: null;
 
 						await interaction.editReply(
-							`Ckey: ${player.ckey}\nByond Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nByond'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
+							`Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
 						);
 					} else {
 						await interaction.editReply('Oyuncu bilgileri alınamadı.');
@@ -167,6 +170,23 @@ export class PlayerCommand implements Command {
 				}
 
 				break;
+			}
+		}
+	}
+	public async autocomplete(interaction: AutocompleteInteraction) {
+		const focusedValue = interaction.options.getFocused(true);
+
+		if (focusedValue.name === 'ckey') {
+			const { status, response } = await get<string[]>(
+				`autocomplete/ckey?ckey=${focusedValue.value}`
+			);
+
+			if (status === 1) {
+				await interaction.respond(
+					response.map((ckey) => ({ name: ckey, value: ckey }))
+				);
+			} else {
+				await interaction.respond([]);
 			}
 		}
 	}
