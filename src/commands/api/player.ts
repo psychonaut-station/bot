@@ -95,19 +95,19 @@ export class PlayerCommand implements Command {
 				const ckey = interaction.options.getString('ckey');
 
 				try {
-					const { status, response } = await get<Player>(
+					const { status, response: player } = await get<Player>(
 						`player/?ckey=${ckey}`
 					);
 
 					if (status === 1) {
-						const firstSeen = parseDate(response.first_seen);
-						const lastSeen = parseDate(response.last_seen);
-						const byondAge = response.byond_age
-							? parseDate(response.byond_age)
+						const firstSeen = parseDate(player.first_seen);
+						const lastSeen = parseDate(player.last_seen);
+						const byondAge = player.byond_age
+							? parseDate(player.byond_age)
 							: null;
 
 						await interaction.editReply(
-							`Ckey: ${response.ckey}\nByond Adı: ${response.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${response.first_seen_round}\nSon Görülen Round: ${response.last_seen_round}\nIP: gösterilmiyor\nCID: gösterilmiyor\nByond'a Katılma Tarihi: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
+							`Ckey: ${player.ckey}\nByond Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nByond'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
 						);
 					} else {
 						await interaction.editReply('Oyuncu bilgileri alınamadı.');
