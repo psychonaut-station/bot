@@ -38,7 +38,7 @@ export class PlayerCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('player')
 		.setDescription('Oyuncu hakkında bilgileri gösterir.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('info')
