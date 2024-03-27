@@ -26,7 +26,7 @@ async function main() {
 			client.once(event.name, (...args) => event.execute(...args));
 		} else {
 			// @ts-ignore
-			client.on(event.name as any, (...args) => event.execute(...args));
+			client.on(event.name, (...args) => event.execute(...args));
 		}
 	}
 
