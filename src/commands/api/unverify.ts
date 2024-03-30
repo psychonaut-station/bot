@@ -1,11 +1,10 @@
 import {
-	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
 import { Command } from '../../types';
-import { get, post } from '../../utils/api';
+import { post } from '../../utils/api';
 import { AxiosError } from 'axios';
 
 export class UnverifyCommand implements Command {
@@ -85,23 +84,6 @@ export class UnverifyCommand implements Command {
 			}
 
 			throw error;
-		}
-	}
-	public async autocomplete(interaction: AutocompleteInteraction) {
-		const focusedValue = interaction.options.getFocused(true);
-
-		if (focusedValue.name === 'ckey') {
-			const { status, response } = await get<string[]>(
-				`autocomplete/ckey?ckey=${focusedValue.value}`
-			);
-
-			if (status === 1) {
-				await interaction.respond(
-					response.map((ckey) => ({ name: ckey, value: ckey }))
-				);
-			} else {
-				await interaction.respond([]);
-			}
 		}
 	}
 }
