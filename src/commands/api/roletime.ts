@@ -216,18 +216,6 @@ export class RoletimeCommand implements Command {
 			await interaction.respond(
 				filteredJobs.map((job) => ({ name: job, value: job }))
 			);
-		} else if (focusedValue.name === 'ckey') {
-			const { status, response } = await get<string[]>(
-				`autocomplete/ckey?ckey=${focusedValue.value}`
-			);
-
-			if (status === 1) {
-				await interaction.respond(
-					response.map((ckey) => ({ name: ckey, value: ckey }))
-				);
-			} else {
-				await interaction.respond([]);
-			}
 		}
 	}
 }

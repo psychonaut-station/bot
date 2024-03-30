@@ -5,6 +5,7 @@ import {
 	Events,
 } from 'discord.js';
 import { Event } from '../types';
+import { get } from '../utils/api';
 
 export class InteractionCreateEvent implements Event {
 	public name = Events.InteractionCreate;
@@ -45,6 +46,13 @@ async function handleChatInputCommand(
 	}
 }
 
+const genericAutocomplete: Record<
+	string,
+	(interaction: AutocompleteInteraction) => Promise<void>
+> = {
+	ckey: ckeyAutocomplete,
+};
+
 async function handleAutocomplete(interaction: AutocompleteInteraction) {
 	const command = interaction.client.commands.get(interaction.commandName);
 
@@ -56,8 +64,36 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 	}
 
 	try {
+		const focusedValue = interaction.options.getFocused(true);
+
+		if (focusedValue.name in genericAutocomplete) {
+			const autocomplete = genericAutocomplete[focusedValue.name];
+			await autocomplete(interaction);
+			return;
+		}
+
 		await command.autocomplete?.(interaction);
 	} catch (error) {
 		console.error(error);
 	}
+}
+
+async function ckeyAutocomplete(interaction: AutocompleteInteraction) {
+	const focusedValue = interaction.options.getFocused(true);
+
+	const { status, response } = await get<string[]>(
+		`autocomplete/ckey?ckey=${focusedValue.value}`
+	);
+
+	if (status === 1) {
+		interaction.respond(
+			response.map((ckey) => ({
+				name: ckey,
+				value: ckey,
+			}))
+		);
+		return;
+	}
+
+	interaction.respond([]);
 }
