@@ -24,14 +24,16 @@ async function handleChatInputCommand(
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		interaction.client.logger.error(
+			`No command matching ${interaction.commandName} was found.`
+		);
 		return;
 	}
 
 	try {
 		await command.execute(interaction);
 	} catch (error) {
-		console.error(error);
+		interaction.client.logger.error(error);
 		if (interaction.replied || interaction.deferred) {
 			await interaction.followUp({
 				content: 'There was an error while executing this command!',
@@ -57,7 +59,7 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		console.error(
+		interaction.client.logger.error(
 			`No autocomplete matching ${interaction.commandName} was found.`
 		);
 		return;
@@ -74,7 +76,7 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 
 		await command.autocomplete?.(interaction);
 	} catch (error) {
-		console.error(error);
+		interaction.client.logger.error(error);
 	}
 }
 

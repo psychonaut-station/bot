@@ -6,22 +6,14 @@ export async function deployCommands(client: Client) {
 	try {
 		const commands = client.commands.map((command) => command.builder.toJSON());
 
-		console.log(
-			`Started refreshing ${commands.length} application (/) commands.`
-		);
-
-		const data: any = await rest.put(
+		await rest.put(
 			Routes.applicationGuildCommands(
 				process.env.APPLICATION_ID!,
 				process.env.GUILD_ID!
 			),
 			{ body: commands }
 		);
-
-		console.log(
-			`Successfully reloaded ${data.length} application (/) commands.`
-		);
 	} catch (error) {
-		console.error(error);
+		client.logger.error(error);
 	}
 }

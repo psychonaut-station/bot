@@ -1,4 +1,5 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import pino from 'pino';
 
 import { deployCommands } from './utils/deployCommands';
 
@@ -11,6 +12,18 @@ async function main() {
 	const client = new Client({
 		intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 	});
+
+	client.logger = pino(
+		pino.transport({
+			targets: [
+				{ target: 'pino-pretty', options: { colorize: true } },
+				{
+					target: 'pino/file',
+					options: { destination: process.env.LOG_FILE!, mkdir: true },
+				},
+			],
+		})
+	);
 
 	client.commands = new Collection();
 
