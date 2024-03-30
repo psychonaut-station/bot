@@ -13,10 +13,10 @@ const config = {
 		file: 'dist/bundle.js',
 		format: 'cjs',
 	},
-	external: ['discord.js'],
+	external: ['discord.js', 'pino', 'pino-pretty'],
 	plugins: [
 		json(),
-		nodeResolve(),
+		nodeResolve({ preferBuiltins: true }),
 		typescript({ outputToFilesystem: false }),
 		commonjs(),
 		terser(),

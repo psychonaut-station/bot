@@ -14,18 +14,22 @@ export class VerifyCommand implements Command {
 				.setRequired(true)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
-		const userId = interaction.user.id;
+		const user = interaction.user;
 		const token = interaction.options.getString('token', true);
 
 		await interaction.deferReply({ ephemeral: true });
 
 		try {
 			const { status, response: ckey } = await post<string>('verify', {
-				discord_id: userId,
+				discord_id: user.id,
 				one_time_token: token,
 			});
 
 			if (status === 1) {
+				interaction.client.logger.info(
+					`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
+				);
+
 				await interaction.editReply(
 					`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı!`
 				);

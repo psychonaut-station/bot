@@ -52,6 +52,10 @@ export class UnverifyCommand implements Command {
 					});
 
 					if (status === 1) {
+						interaction.client.logger.info(
+							`Unverified user [${user.tag}](${user.id}) with ckey \`${response}\` by [${interaction.user.tag}](${interaction.user.id})`
+						);
+
 						await interaction.editReply(
 							`<@${user.id}> adlı Discord hesabı ile \`${response}\` adlı BYOND hesabının bağlantısı kaldırıldı!`
 						);
@@ -62,11 +66,18 @@ export class UnverifyCommand implements Command {
 				case 'ckey': {
 					const ckey = interaction.options.getString('ckey', true);
 
-					const { status, response } = await post('unverify', {
+					const { status, response } = await post<string>('unverify', {
 						ckey,
 					});
 
 					if (status === 1) {
+						const userId = response.substring(1);
+						const user = await interaction.client.users.fetch(userId);
+
+						interaction.client.logger.info(
+							`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
+						);
+
 						await interaction.editReply(
 							`\`${ckey}\` adlı BYOND hesabı ile <${response}> adlı Discord hesabının bağlantısı kaldırıldı!`
 						);

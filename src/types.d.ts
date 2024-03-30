@@ -7,11 +7,13 @@ import {
 	Events,
 	SlashCommandOptionsOnlyBuilder,
 } from 'discord.js';
+import { Logger } from 'pino';
 import { Command } from './commands';
 
 declare module 'discord.js' {
 	export interface Client {
 		commands: Collection<string, Command>;
+		logger: Logger;
 	}
 }
 
