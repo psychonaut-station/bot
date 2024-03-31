@@ -14,7 +14,7 @@ export class UnverifyCommand implements Command {
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('discord')
+				.setName('user')
 				.setDescription(
 					'Discord hesabı ile BYOND hesabı bağlantısını kaldırır.'
 				)
@@ -44,7 +44,7 @@ export class UnverifyCommand implements Command {
 
 		try {
 			switch (interaction.options.getSubcommand()) {
-				case 'discord': {
+				case 'user': {
 					const user = interaction.options.getUser('user', true);
 
 					const { status, response } = await post('unverify', {
