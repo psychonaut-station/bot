@@ -47,41 +47,37 @@ export class UnverifyCommand implements Command {
 				case 'user': {
 					const user = interaction.options.getUser('user', true);
 
-					const { status, response } = await post('unverify', {
+					const { response } = await post('unverify', {
 						discord_id: user.id,
 					});
 
-					if (status === 1) {
-						interaction.client.logger.info(
-							`Unverified user [${user.tag}](${user.id}) with ckey \`${response}\` by [${interaction.user.tag}](${interaction.user.id})`
-						);
+					interaction.client.logger.info(
+						`Unverified user [${user.tag}](${user.id}) with ckey \`${response}\` by [${interaction.user.tag}](${interaction.user.id})`
+					);
 
-						await interaction.editReply(
-							`<@${user.id}> adlı Discord hesabı ile \`${response}\` adlı BYOND hesabının bağlantısı kaldırıldı!`
-						);
-					}
+					await interaction.editReply(
+						`<@${user.id}> adlı Discord hesabı ile \`${response}\` adlı BYOND hesabının bağlantısı kaldırıldı!`
+					);
 
 					break;
 				}
 				case 'ckey': {
 					const ckey = interaction.options.getString('ckey', true);
 
-					const { status, response } = await post<string>('unverify', {
+					const { response } = await post<string>('unverify', {
 						ckey,
 					});
 
-					if (status === 1) {
-						const userId = response.substring(1);
-						const user = await interaction.client.users.fetch(userId);
+					const userId = response.substring(1);
+					const user = await interaction.client.users.fetch(userId);
 
-						interaction.client.logger.info(
-							`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
-						);
+					interaction.client.logger.info(
+						`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
+					);
 
-						await interaction.editReply(
-							`\`${ckey}\` adlı BYOND hesabı ile <${response}> adlı Discord hesabının bağlantısı kaldırıldı!`
-						);
-					}
+					await interaction.editReply(
+						`\`${ckey}\` adlı BYOND hesabı ile <${response}> adlı Discord hesabının bağlantısı kaldırıldı!`
+					);
 
 					break;
 				}
@@ -89,12 +85,15 @@ export class UnverifyCommand implements Command {
 		} catch (error) {
 			const axiosError = error as AxiosError;
 
-			if (axiosError.response?.status === 404) {
+			if (axiosError.response?.status === 409) {
 				await interaction.editReply('Hesap zaten bağlı değil!');
+				return;
+			} else if (axiosError.response?.status === 404) {
+				await interaction.editReply('Hesap bulunamadı!');
 				return;
 			}
 
-			throw error;
+			throw axiosError;
 		}
 	}
 }

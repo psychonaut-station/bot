@@ -20,20 +20,18 @@ export class VerifyCommand implements Command {
 		await interaction.deferReply({ ephemeral: true });
 
 		try {
-			const { status, response: ckey } = await post<string>('verify', {
+			const { response: ckey } = await post<string>('verify', {
 				discord_id: user.id,
 				one_time_token: token,
 			});
 
-			if (status === 1) {
-				interaction.client.logger.info(
-					`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
-				);
+			interaction.client.logger.info(
+				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
+			);
 
-				await interaction.editReply(
-					`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı!`
-				);
-			}
+			await interaction.editReply(
+				`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı!`
+			);
 		} catch (error) {
 			const axiosError = error as AxiosError;
 
