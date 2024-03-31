@@ -28,7 +28,7 @@ export class WhoCommand implements Command {
 				.setAutocomplete(true)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply();
 
 		const ckey = interaction.options.getString('ckey', true);
 
