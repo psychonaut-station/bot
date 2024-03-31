@@ -6,6 +6,7 @@ import {
 import { Command } from '../../types';
 import { get } from '../../utils/api';
 import { parseDate, timestamp } from '../../utils/date';
+import { AxiosError } from 'axios';
 
 type Player = {
 	ckey: string;
@@ -94,25 +95,28 @@ export class PlayerCommand implements Command {
 				const ckey = interaction.options.getString('ckey');
 
 				try {
-					const { status, response: player } = await get<Player>(
+					const { response: player } = await get<Player>(
 						`player/?ckey=${ckey}`
 					);
 
-					if (status === 1) {
-						const firstSeen = parseDate(player.first_seen);
-						const lastSeen = parseDate(player.last_seen);
-						const byondAge = player.byond_age
-							? parseDate(player.byond_age)
-							: null;
+					const firstSeen = parseDate(player.first_seen);
+					const lastSeen = parseDate(player.last_seen);
+					const byondAge = player.byond_age
+						? parseDate(player.byond_age)
+						: null;
 
-						await interaction.editReply(
-							`Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
-						);
-					} else {
-						await interaction.editReply('Oyuncu bilgileri alınamadı.');
-					}
+					await interaction.editReply(
+						`Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
+					);
 				} catch (error) {
-					await interaction.editReply('Oyuncu bilgileri alınamadı.');
+					const axiosError = error as AxiosError;
+
+					if (axiosError.response?.status === 404) {
+						await interaction.editReply('Oyuncu bulunamadı.');
+						return;
+					}
+
+					throw axiosError;
 				}
 
 				break;
@@ -124,11 +128,11 @@ export class PlayerCommand implements Command {
 
 				const ckey = interaction.options.getString('ckey');
 
-				const { status, response: bans } = await get<Ban[]>(
-					`player/ban/?ckey=${ckey}`
-				);
+				try {
+					const { response: bans } = await get<Ban[]>(
+						`player/ban/?ckey=${ckey}`
+					);
 
-				if (status === 1) {
 					if (bans.length === 0) {
 						await interaction.editReply(
 							'Oyuncunun ban geçmişi bulunmamaktadır.'
@@ -164,8 +168,15 @@ export class PlayerCommand implements Command {
 							content: formatBan(ban),
 						});
 					}
-				} else {
-					await interaction.editReply('Oyuncunun ban bilgileri alınamadı.');
+				} catch (error) {
+					const axiosError = error as AxiosError;
+
+					if (axiosError.response?.status === 404) {
+						await interaction.editReply('Oyuncu bulunamadı.');
+						return;
+					}
+
+					throw axiosError;
 				}
 
 				break;

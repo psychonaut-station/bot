@@ -10,6 +10,7 @@ import {
 } from 'discord.js';
 import { Command } from '../../types';
 import { get } from '../../utils/api';
+import { AxiosError } from 'axios';
 
 export class RoletimeCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -53,30 +54,26 @@ export class RoletimeCommand implements Command {
 
 				type Entry = { ckey: string; minutes: number };
 
-				const { status, response: top } = await get<Entry[]>(
+				const { response: top } = await get<Entry[]>(
 					`player/roletime/top/?job=${job}`
 				);
 
-				if (status === 1) {
-					if (top.length === 0) {
-						await interaction.editReply('Meslek bilgileri alınamadı.');
-						return;
+				if (top.length === 0) {
+					await interaction.editReply('Meslek bilgileri alınamadı.');
+					return;
+				}
+
+				const formatEntry = (entry: Entry) => {
+					const hours = Math.floor(entry.minutes / 60);
+
+					if (hours === 0) {
+						return `${entry.ckey}: ${entry.minutes} dakika`;
 					}
 
-					const formatEntry = (entry: Entry) => {
-						const hours = Math.floor(entry.minutes / 60);
+					return `${entry.ckey}: ${hours} saat`;
+				};
 
-						if (hours === 0) {
-							return `${entry.ckey}: ${entry.minutes} dakika`;
-						}
-
-						return `${entry.ckey}: ${hours} saat`;
-					};
-
-					await interaction.editReply(top.map(formatEntry).join('\n'));
-				} else {
-					await interaction.editReply('Meslek bilgileri alınamadı.');
-				}
+				await interaction.editReply(top.map(formatEntry).join('\n'));
 
 				break;
 			}
@@ -87,11 +84,11 @@ export class RoletimeCommand implements Command {
 
 				type Entry = { job: string; minutes: number };
 
-				const { status, response: player } = await get<Entry[]>(
-					`player/roletime?ckey=${ckey}`
-				);
+				try {
+					const { response: player } = await get<Entry[]>(
+						`player/roletime?ckey=${ckey}`
+					);
 
-				if (status === 1) {
 					if (player.length === 0) {
 						await interaction.editReply('Oyuncu bilgileri alınamadı.');
 						return;
@@ -107,9 +104,11 @@ export class RoletimeCommand implements Command {
 						return `${entry.job}: ${hours} saat`;
 					};
 
+					const maxPage = Math.ceil(player.length / 15);
+
 					const next = new ButtonBuilder()
 						.setCustomId('roletimePlayerNext')
-						.setLabel('Sonraki')
+						.setLabel(`Sonraki (1/${maxPage})`)
 						.setStyle(ButtonStyle.Secondary);
 
 					const previous = new ButtonBuilder()
@@ -130,7 +129,8 @@ export class RoletimeCommand implements Command {
 							.slice((page - 1) * 15, page * 15)
 							.map(formatEntry)
 							.join('\n');
-						next.setDisabled(player.length <= page * 15);
+						next.setDisabled(page === maxPage);
+						next.setLabel(`Sonraki (${page}/${maxPage})`);
 						previous.setDisabled(page === 1);
 					};
 
@@ -149,7 +149,7 @@ export class RoletimeCommand implements Command {
 							});
 
 							if (pagination.customId === 'roletimePlayerNext') {
-								if (player.length > page * 15) {
+								if (page < maxPage) {
 									page += 1;
 								}
 							} else {
@@ -177,8 +177,15 @@ export class RoletimeCommand implements Command {
 							break;
 						}
 					}
-				} else {
-					await interaction.editReply('Oyuncu bilgileri alınamadı.');
+				} catch (error) {
+					const axiosError = error as AxiosError;
+
+					if (axiosError.response?.status === 404) {
+						await interaction.editReply('Oyuncu bulunamadı.');
+						return;
+					}
+
+					throw axiosError;
 				}
 
 				break;
