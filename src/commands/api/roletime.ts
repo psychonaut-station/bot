@@ -202,14 +202,14 @@ export class RoletimeCommand implements Command {
 			if (this.jobs) {
 				jobs = this.jobs;
 			} else {
-				const { status, response } = await get<string[]>('autocomplete/job');
+				try {
+					const { response } = await get<string[]>('autocomplete/job');
 
-				if (status === 1) {
 					jobs = response;
 					this.jobs = jobs;
 					setTimeout(() => delete this.jobs, 1000 * 60 * 30);
-				} else {
-					await interaction.respond([]);
+				} catch {
+					interaction.respond([]);
 					return;
 				}
 			}
@@ -220,7 +220,7 @@ export class RoletimeCommand implements Command {
 				)
 				.slice(0, 25);
 
-			await interaction.respond(
+			interaction.respond(
 				filteredJobs.map((job) => ({ name: job, value: job }))
 			);
 		}
