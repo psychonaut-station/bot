@@ -192,37 +192,24 @@ export class RoletimeCommand implements Command {
 			}
 		}
 	}
-	public jobs?: string[];
 	public async autocomplete(interaction: AutocompleteInteraction) {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'job') {
-			let jobs: string[];
+			try {
+				const { response } = await get<string[]>(
+					`autocomplete/job?job=${focusedValue.value}`
+				);
 
-			if (this.jobs) {
-				jobs = this.jobs;
-			} else {
-				try {
-					const { response } = await get<string[]>('autocomplete/job');
-
-					jobs = response;
-					this.jobs = jobs;
-					setTimeout(() => delete this.jobs, 1000 * 60 * 30);
-				} catch {
+				if (response.length === 0) {
 					interaction.respond([]);
 					return;
 				}
+
+				interaction.respond(response.map((job) => ({ name: job, value: job })));
+			} catch {
+				interaction.respond([]);
 			}
-
-			const filteredJobs = jobs
-				.filter((job) =>
-					job.toLowerCase().startsWith(focusedValue.value.toLowerCase())
-				)
-				.slice(0, 25);
-
-			interaction.respond(
-				filteredJobs.map((job) => ({ name: job, value: job }))
-			);
 		}
 	}
 }

@@ -146,22 +146,23 @@ export class WhoCommand implements Command {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'ic-name') {
-			if (focusedValue.value.length > 0) {
-				try {
-					const { response } = await get<{ name: string; ckey: string }[]>(
-						`autocomplete/ic_name?ic_name=${focusedValue.value}`
-					);
+			try {
+				const { response } = await get<{ name: string; ckey: string }[]>(
+					`autocomplete/ic_name?ic_name=${focusedValue.value}`
+				);
 
-					const names = response.map(({ name }) => name);
-					const uniqueNames = [...new Set(names)];
-
-					interaction.respond(
-						uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
-					);
-				} catch {
+				if (response.length === 0) {
 					interaction.respond([]);
+					return;
 				}
-			} else {
+
+				const names = response.map(({ name }) => name);
+				const uniqueNames = [...new Set(names)];
+
+				interaction.respond(
+					uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
+				);
+			} catch {
 				interaction.respond([]);
 			}
 		}
