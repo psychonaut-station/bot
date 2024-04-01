@@ -83,19 +83,18 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 async function ckeyAutocomplete(interaction: AutocompleteInteraction) {
 	const focusedValue = interaction.options.getFocused(true);
 
-	const { status, response } = await get<string[]>(
-		`autocomplete/ckey?ckey=${focusedValue.value}`
-	);
+	try {
+		const { response } = await get<string[]>(
+			`autocomplete/ckey?ckey=${focusedValue.value}`
+		);
 
-	if (status === 1) {
 		interaction.respond(
 			response.map((ckey) => ({
 				name: ckey,
 				value: ckey,
 			}))
 		);
-		return;
+	} catch {
+		interaction.respond([]);
 	}
-
-	interaction.respond([]);
 }

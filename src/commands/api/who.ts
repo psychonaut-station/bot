@@ -1,4 +1,5 @@
 import {
+	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -20,36 +21,149 @@ export class WhoCommand implements Command {
 		.setName('who')
 		.setDescription('Oyuncunun Discord hesabını gösterir.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
-		.addStringOption((option) =>
-			option
+		.addSubcommand((subcommand) =>
+			subcommand
 				.setName('ckey')
-				.setDescription("Oyuncunun ckey'i")
-				.setRequired(true)
-				.setAutocomplete(true)
+				.setDescription("Oyuncunun ckey'i ile Discord hesabını gösterir.")
+				.addStringOption((option) =>
+					option
+						.setName('ckey')
+						.setDescription("Oyuncunun ckey'i")
+						.setRequired(true)
+						.setAutocomplete(true)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('user')
+				.setDescription("Oyuncunun Discord hesabı ile ckey'i gösterir.")
+				.addUserOption((option) =>
+					option
+						.setName('user')
+						.setDescription('Oyuncunun Discord hesabı')
+						.setRequired(true)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('ic-name')
+				.setDescription("Oyuncunun karakterinin adı ile ckey'ini gösterir.")
+				.addStringOption((option) =>
+					option
+						.setName('ic-name')
+						.setDescription('Oyuncunun karakterinin adı')
+						.setRequired(true)
+						.setAutocomplete(true)
+				)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
-		const ckey = interaction.options.getString('ckey', true);
+		switch (interaction.options.getSubcommand()) {
+			case 'ckey': {
+				const ckey = interaction.options.getString('ckey', true);
 
-		try {
-			const { response } = await get<User>(`player/discord/?ckey=${ckey}`);
+				try {
+					const { response } = await get<User>(`player/discord/?ckey=${ckey}`);
 
-			await interaction.editReply(
-				`Oyuncunun Discord hesabı: <@${response.id}>`
-			);
-		} catch (error) {
-			const axiosError = error as AxiosError;
+					await interaction.editReply(
+						`Oyuncunun Discord hesabı: <@${response.id}>`
+					);
+				} catch (error) {
+					const axiosError = error as AxiosError;
 
-			if (axiosError.response?.status === 409) {
-				await interaction.editReply('Oyuncunun hesabı bağlı değil.');
-				return;
-			} else if (axiosError.response?.status === 404) {
-				await interaction.editReply('Oyuncu bulunamadı.');
-				return;
+					if (axiosError.response?.status === 409) {
+						await interaction.editReply('Oyuncunun hesabı bağlı değil.');
+						return;
+					} else if (axiosError.response?.status === 404) {
+						await interaction.editReply('Oyuncu bulunamadı.');
+						return;
+					}
+
+					throw axiosError;
+				}
+
+				break;
 			}
+			case 'user': {
+				const user = interaction.options.getUser('user', true);
 
-			throw axiosError;
+				try {
+					const { response } = await get<string>(
+						`player/discord/?discord_id=${user.id}`
+					);
+
+					await interaction.editReply(`Oyuncunun ckey'i: \`${response}\``);
+				} catch (error) {
+					const axiosError = error as AxiosError;
+
+					if (axiosError.response?.status === 409) {
+						await interaction.editReply('Oyuncunun hesabı bağlı değil.');
+						return;
+					}
+
+					throw axiosError;
+				}
+
+				break;
+			}
+			case 'ic-name': {
+				let icName = interaction.options.getString('ic-name', true);
+				let exactMatch = false;
+
+				if (icName.endsWith('\u00ad')) {
+					icName = icName.slice(0, -1);
+					exactMatch = true;
+				}
+
+				const { response } = await get<{ name: string; ckey: string }[]>(
+					`autocomplete/ic_name?ic_name=${icName}`
+				);
+
+				let filteredResponse = response;
+
+				if (exactMatch) {
+					filteredResponse = response.filter((entry) => entry.name === icName);
+				}
+
+				if (filteredResponse.length === 0) {
+					await interaction.editReply('Oyuncu bulunamadı.');
+					return;
+				}
+
+				const formatEntry = (entry: { name: string; ckey: string }) =>
+					`${entry.name} - \`${entry.ckey}\``;
+
+				await interaction.editReply(
+					filteredResponse.map(formatEntry).join('\n')
+				);
+
+				break;
+			}
+		}
+	}
+	public async autocomplete(interaction: AutocompleteInteraction) {
+		const focusedValue = interaction.options.getFocused(true);
+
+		if (focusedValue.name === 'ic-name') {
+			if (focusedValue.value.length > 0) {
+				try {
+					const { response } = await get<{ name: string; ckey: string }[]>(
+						`autocomplete/ic_name?ic_name=${focusedValue.value}`
+					);
+
+					const names = response.map(({ name }) => name);
+					const uniqueNames = [...new Set(names)];
+
+					interaction.respond(
+						uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
+					);
+				} catch {
+					interaction.respond([]);
+				}
+			} else {
+				interaction.respond([]);
+			}
 		}
 	}
 }
