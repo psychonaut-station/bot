@@ -1,14 +1,13 @@
 import {
-	ChatInputCommandInteraction,
+	type ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
-import { Command } from '../../types';
-import { get } from '../../utils/api';
-import { parseDate, timestamp } from '../../utils/date';
-import { AxiosError } from 'axios';
 
-type Player = {
+import type { Command } from '../../types';
+import { get, parseDate, timestamp } from '../../utils';
+
+interface Player {
 	ckey: string;
 	byond_key: string | null;
 	first_seen: string;
@@ -18,9 +17,9 @@ type Player = {
 	ip: string;
 	cid: string;
 	byond_age: string | null;
-};
+}
 
-type Ban = {
+interface Ban {
 	id: number;
 	bantime: string;
 	round_id: number | null;
@@ -32,7 +31,7 @@ type Ban = {
 	edits: string | null;
 	unbanned_datetime: string | null;
 	unbanned_ckey: string | null;
-};
+}
 
 export class PlayerCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -46,16 +45,14 @@ export class PlayerCommand implements Command {
 				.addStringOption((option) =>
 					option
 						.setName('ckey')
-						.setDescription("Oyuncunun ckey'i")
+						.setDescription('Oyuncunun ckeyi.')
 						.setRequired(true)
 						.setAutocomplete(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName('ephemeral')
-						.setDescription(
-							'Mesajı sadece siz görebilirsiniz. Varsayılan: Evet'
-						)
+						.setDescription('Varsayılan olarak yanıtı sadece size gösterir.')
 						.setChoices(
 							{ name: 'Evet', value: 'true' },
 							{ name: 'Hayır', value: 'false' }
@@ -69,16 +66,14 @@ export class PlayerCommand implements Command {
 				.addStringOption((option) =>
 					option
 						.setName('ckey')
-						.setDescription("Oyuncunun ckey'i")
+						.setDescription('Oyuncunun ckeyi.')
 						.setRequired(true)
 						.setAutocomplete(true)
 				)
 				.addStringOption((option) =>
 					option
 						.setName('ephemeral')
-						.setDescription(
-							'Mesajı sadece siz görebilirsiniz. Varsayılan: Evet'
-						)
+						.setDescription('Varsayılan olarak yanıtı sadece size gösterir.')
 						.setChoices(
 							{ name: 'Evet', value: 'true' },
 							{ name: 'Hayır', value: 'false' }
@@ -88,55 +83,49 @@ export class PlayerCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'info': {
+				const ckey = interaction.options.getString('ckey', true);
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
-				await interaction.deferReply({ ephemeral });
 
-				const ckey = interaction.options.getString('ckey');
+				const { status, response: player } = await get<Player>(
+					`player/?ckey=${ckey}`
+				);
 
-				try {
-					const { response: player } = await get<Player>(
-						`player/?ckey=${ckey}`
-					);
-
-					const firstSeen = parseDate(player.first_seen);
-					const lastSeen = parseDate(player.last_seen);
+				if (status === 1) {
+					const firstSeen = timestamp(parseDate(player.first_seen), 'R');
+					const lastSeen = timestamp(parseDate(player.last_seen), 'R');
 					const byondAge = player.byond_age
-						? parseDate(player.byond_age)
-						: null;
+						? timestamp(parseDate(player.byond_age), 'R')
+						: 'bilinmiyor';
 
-					await interaction.editReply(
-						`Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${timestamp(firstSeen, 'R')}\nSon Görülen: ${timestamp(lastSeen, 'R')}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge ? timestamp(byondAge, 'R') : 'bilinmiyor'}`
-					);
-				} catch (error) {
-					const axiosError = error as AxiosError;
-
-					if (axiosError.response?.status === 404) {
-						await interaction.editReply('Oyuncu bulunamadı.');
-						return;
-					}
-
-					throw axiosError;
+					interaction.reply({
+						content: `Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`,
+						ephemeral,
+					});
+				} else if (status === 4) {
+					interaction.reply({
+						content: 'Oyuncu bulunamadı.',
+						ephemeral,
+					});
 				}
 
 				break;
 			}
 			case 'ban': {
+				const ckey = interaction.options.getString('ckey', true);
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
-				await interaction.deferReply({ ephemeral });
 
-				const ckey = interaction.options.getString('ckey');
+				const { status, response: bans } = await get<Ban[]>(
+					`player/ban/?ckey=${ckey}`
+				);
 
-				try {
-					const { response: bans } = await get<Ban[]>(
-						`player/ban/?ckey=${ckey}`
-					);
-
+				if (status === 1) {
 					if (bans.length === 0) {
-						await interaction.editReply(
-							'Oyuncunun ban geçmişi bulunmamaktadır.'
-						);
+						interaction.reply({
+							content: 'Oyuncunun ban geçmişi bulunmamaktadır.',
+							ephemeral,
+						});
 						return;
 					}
 
@@ -149,34 +138,43 @@ export class PlayerCommand implements Command {
 					);
 
 					if (activeBans.length === 0) {
-						await interaction.editReply(
-							'Oyuncunun aktif bir banı bulunmamaktadır.'
-						);
+						interaction.reply({
+							content: 'Oyuncunun aktif banı bulunmamaktadır.',
+							ephemeral,
+						});
 						return;
 					}
 
-					const simplified = simplifyBans(activeBans);
+					const sortedBans = sortBans(activeBans);
 
-					const formatBan = (ban: SimplifiedBan) =>
-						`Ckey: ${ban.ckey}\nBan Tarihi: ${timestamp(ban.bantime, 'R')}\nRound ID: ${ban.round_id ?? 'yok'}\nRoller: ${ban.roles.join(', ') || 'yok'}\nBitiş Tarihi: ${ban.expiration_time ? timestamp(ban.expiration_time, 'R') : 'kalıcı'}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDüzenlemeler: ${ban.edits ?? 'yok'}`;
+					const formatBan = (ban: SortedBan) => {
+						const bantime = timestamp(ban.bantime, 'R');
+						const roundId = ban.round_id ?? 'yok';
+						const roles = ban.roles.join(', ') || 'yok';
+						const expirationTime = ban.expiration_time
+							? timestamp(ban.expiration_time, 'R')
+							: 'kalıcı';
+						const edits = ban.edits ?? 'yok';
 
-					await interaction.editReply(formatBan(simplified.shift()!));
+						return `Ckey: ${ban.ckey}\nBan Tarihi: ${bantime}\nRound ID: ${roundId}\nRoller: ${roles}\nBitiş Tarihi: ${expirationTime}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDüzenlemeler: ${edits}`;
+					};
 
-					for (const ban of simplified) {
+					await interaction.reply({
+						content: formatBan(sortedBans.shift()!),
+						ephemeral,
+					});
+
+					for (const ban of sortedBans) {
 						await interaction.followUp({
-							ephemeral: true,
 							content: formatBan(ban),
+							ephemeral,
 						});
 					}
-				} catch (error) {
-					const axiosError = error as AxiosError;
-
-					if (axiosError.response?.status === 404) {
-						await interaction.editReply('Oyuncu bulunamadı.');
-						return;
-					}
-
-					throw axiosError;
+				} else if (status === 4) {
+					interaction.reply({
+						content: 'Oyuncu bulunamadı.',
+						ephemeral,
+					});
 				}
 
 				break;
@@ -185,7 +183,7 @@ export class PlayerCommand implements Command {
 	}
 }
 
-type SimplifiedBan = {
+interface SortedBan {
 	ckey: string | null;
 	bantime: Date;
 	round_id: number | null;
@@ -194,17 +192,17 @@ type SimplifiedBan = {
 	reason: string;
 	admin_ckey: string;
 	edits: string | null;
-};
+}
 
-function simplifyBans(bans: Ban[]): SimplifiedBan[] {
-	const simplifiedBans = new Map<string, SimplifiedBan>();
+function sortBans(bans: Ban[]) {
+	const sortedBans = new Map<string, SortedBan>();
 
 	for (const ban of bans) {
-		if (simplifiedBans.has(ban.bantime)) {
-			const simpleBan = simplifiedBans.get(ban.bantime)!;
+		if (sortedBans.has(ban.bantime)) {
+			const sortedBan = sortedBans.get(ban.bantime)!;
 
-			if (ban.role && !simpleBan.roles.includes(ban.role)) {
-				simpleBan.roles.push(ban.role);
+			if (ban.role && !sortedBan.roles.includes(ban.role)) {
+				sortedBan.roles.push(ban.role);
 			}
 		} else {
 			const roles = [];
@@ -213,7 +211,7 @@ function simplifyBans(bans: Ban[]): SimplifiedBan[] {
 				roles.push(ban.role);
 			}
 
-			simplifiedBans.set(ban.bantime, {
+			sortedBans.set(ban.bantime, {
 				ckey: ban.ckey,
 				bantime: parseDate(ban.bantime),
 				round_id: ban.round_id,
@@ -228,5 +226,5 @@ function simplifyBans(bans: Ban[]): SimplifiedBan[] {
 		}
 	}
 
-	return Array.from(simplifiedBans.values());
+	return Array.from(sortedBans.values());
 }

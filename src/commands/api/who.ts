@@ -1,20 +1,20 @@
 import {
-	AutocompleteInteraction,
-	ChatInputCommandInteraction,
+	type AutocompleteInteraction,
+	type ChatInputCommandInteraction,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
-import { Command } from '../../types';
-import { get } from '../../utils/api';
-import { AxiosError } from 'axios';
 
-type User = {
+import type { Command } from '../../types';
+import { get } from '../../utils';
+
+interface User {
 	id: string;
 	username: string;
 	discriminator: string;
 	global_name: string;
 	avatar: string;
-};
+}
 
 export class WhoCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -24,11 +24,11 @@ export class WhoCommand implements Command {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('ckey')
-				.setDescription("Oyuncunun ckey'i ile Discord hesabını gösterir.")
+				.setDescription('Oyuncunun ckeyi ile Discord hesabını gösterir.')
 				.addStringOption((option) =>
 					option
 						.setName('ckey')
-						.setDescription("Oyuncunun ckey'i")
+						.setDescription('Oyuncunun ckeyi')
 						.setRequired(true)
 						.setAutocomplete(true)
 				)
@@ -36,7 +36,7 @@ export class WhoCommand implements Command {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('user')
-				.setDescription("Oyuncunun Discord hesabı ile ckey'i gösterir.")
+				.setDescription('Oyuncunun Discord hesabı ile ckeyini gösterir.')
 				.addUserOption((option) =>
 					option
 						.setName('user')
@@ -47,7 +47,7 @@ export class WhoCommand implements Command {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('ic-name')
-				.setDescription("Oyuncunun karakterinin adı ile ckey'ini gösterir.")
+				.setDescription('Oyuncunun karakterinin adı ile ckeyini gösterir.')
 				.addStringOption((option) =>
 					option
 						.setName('ic-name')
@@ -57,30 +57,20 @@ export class WhoCommand implements Command {
 				)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
-		await interaction.deferReply();
-
 		switch (interaction.options.getSubcommand()) {
 			case 'ckey': {
 				const ckey = interaction.options.getString('ckey', true);
 
-				try {
-					const { response } = await get<User>(`player/discord/?ckey=${ckey}`);
+				const { status, response: user } = await get<User>(
+					`player/discord/?ckey=${ckey}`
+				);
 
-					await interaction.editReply(
-						`Oyuncunun Discord hesabı: <@${response.id}>`
-					);
-				} catch (error) {
-					const axiosError = error as AxiosError;
-
-					if (axiosError.response?.status === 409) {
-						await interaction.editReply('Oyuncunun hesabı bağlı değil.');
-						return;
-					} else if (axiosError.response?.status === 404) {
-						await interaction.editReply('Oyuncu bulunamadı.');
-						return;
-					}
-
-					throw axiosError;
+				if (status === 1) {
+					interaction.reply(`Oyuncunun Discord hesabı: <@${user.id}>`);
+				} else if (status === 4) {
+					interaction.reply('Oyuncu bulunamadı.');
+				} else if (status === 6) {
+					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
@@ -88,21 +78,14 @@ export class WhoCommand implements Command {
 			case 'user': {
 				const user = interaction.options.getUser('user', true);
 
-				try {
-					const { response } = await get<string>(
-						`player/discord/?discord_id=${user.id}`
-					);
+				const { status, response: ckey } = await get<string>(
+					`player/discord/?discord_id=${user.id}`
+				);
 
-					await interaction.editReply(`Oyuncunun ckey'i: \`${response}\``);
-				} catch (error) {
-					const axiosError = error as AxiosError;
-
-					if (axiosError.response?.status === 409) {
-						await interaction.editReply('Oyuncunun hesabı bağlı değil.');
-						return;
-					}
-
-					throw axiosError;
+				if (status === 1) {
+					interaction.reply(`Oyuncunun ckeyi: \`${ckey}\``);
+				} else if (status === 6) {
+					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
@@ -120,23 +103,21 @@ export class WhoCommand implements Command {
 					`autocomplete/ic_name?ic_name=${icName}`
 				);
 
-				let filteredResponse = response;
+				let filteredResponse = response!;
 
 				if (exactMatch) {
-					filteredResponse = response.filter((entry) => entry.name === icName);
+					filteredResponse = response!.filter((entry) => entry.name === icName);
 				}
 
 				if (filteredResponse.length === 0) {
-					await interaction.editReply('Oyuncu bulunamadı.');
+					interaction.reply('Oyuncu bulunamadı.');
 					return;
 				}
 
 				const formatEntry = (entry: { name: string; ckey: string }) =>
 					`${entry.name} - \`${entry.ckey}\``;
 
-				await interaction.editReply(
-					filteredResponse.map(formatEntry).join('\n')
-				);
+				interaction.reply(filteredResponse.map(formatEntry).join('\n'));
 
 				break;
 			}
@@ -146,25 +127,21 @@ export class WhoCommand implements Command {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'ic-name') {
-			try {
-				const { response } = await get<{ name: string; ckey: string }[]>(
-					`autocomplete/ic_name?ic_name=${focusedValue.value}`
-				);
+			const { response } = await get<{ name: string; ckey: string }[]>(
+				`autocomplete/ic_name?ic_name=${focusedValue.value}`
+			);
 
-				if (response.length === 0) {
-					interaction.respond([]);
-					return;
-				}
-
-				const names = response.map(({ name }) => name);
-				const uniqueNames = [...new Set(names)];
-
-				interaction.respond(
-					uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
-				);
-			} catch {
+			if (response!.length === 0) {
 				interaction.respond([]);
+				return;
 			}
+
+			const names = response!.map(({ name }) => name);
+			const uniqueNames = [...new Set(names)];
+
+			interaction.respond(
+				uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
+			);
 		}
 	}
 }

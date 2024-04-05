@@ -1,11 +1,12 @@
 root: true
 env:
-  es2022: true
+  es2024: true
   node: true
 extends:
   - 'eslint:recommended'
-  - 'plugin:@typescript-eslint/recommended'
-  - 'prettier'
+  - 'plugin:@typescript-eslint/strict'
+  - 'plugin:@typescript-eslint/stylistic'
+  - 'plugin:prettier/recommended'
 parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaVersion: latest
@@ -13,20 +14,23 @@ parserOptions:
 plugins:
   - '@typescript-eslint'
   - 'prettier'
-ignorePatterns:
-  - dist/
+  - simple-import-sort
 rules:
   '@typescript-eslint/ban-ts-comment': off
+  '@typescript-eslint/consistent-type-imports':
+    [error, fixStyle: 'inline-type-imports']
   '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-unused-vars': warn
+  '@typescript-eslint/no-non-null-assertion': off
   '@typescript-eslint/semi': warn
-  'prettier/prettier': warn
-  linebreak-style:
-    - error
-    - unix
-  no-empty:
-    - error
-    - allowEmptyCatch: true
-  quotes:
-    - warn
-    - single
-    - avoidEscape: true
+  curly: [error, multi-line]
+  eqeqeq: [error, always]
+  linebreak-style: [error, unix]
+  no-empty: [error, allowEmptyCatch: true]
+  no-unused-vars: off
+  quotes: [warn, single, avoidEscape: true]
+  simple-import-sort/imports: error
+  simple-import-sort/exports: error
+ignorePatterns:
+  - 'node_modules/'
+  - 'dist/'

@@ -1,8 +1,12 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { Command } from '../../types';
+import {
+	type ChatInputCommandInteraction,
+	SlashCommandBuilder,
+} from 'discord.js';
+
+import type { Command } from '../../types';
 import { get } from '../../utils/api';
 
-type ServerStatus =
+type Status =
 	| {
 			connection_info: string;
 			gamestate: number;
@@ -25,28 +29,18 @@ export class CheckCommand implements Command {
 		.setName('check')
 		.setDescription('Round durumunu gösterir.');
 	public async execute(interaction: ChatInputCommandInteraction) {
-		try {
-			const { status, response } = await get<ServerStatus[]>('server', false);
+		const { status, response } = await get<Status[]>('server');
 
-			if (status === 1) {
-				const server = response[0];
+		if (status === 1) {
+			const server = response[0];
 
-				if (server.server_status === 1) {
-					await interaction.reply(
-						`Round #${server.round_id}: ${server.players} oyuncu ile devam etmekte.`
-					);
-				} else {
-					await interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
-				}
-			} else {
-				await interaction.reply(
-					'Sunucu bilgileri alınamadı. Daha sonra tekrar deneyin.'
+			if (server.server_status === 1) {
+				interaction.reply(
+					`Round #${server.round_id}: ${server.players} oyuncu ile devam etmekte.`
 				);
+			} else {
+				interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
 			}
-		} catch (_) {
-			await interaction.reply(
-				'Sunucu bilgileri alınamadı. Daha sonra tekrar deneyin.'
-			);
 		}
 	}
 }
