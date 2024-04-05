@@ -1,11 +1,12 @@
 import {
-	AutocompleteInteraction,
-	ChatInputCommandInteraction,
-	CommandInteraction,
+	type AutocompleteInteraction,
+	type ChatInputCommandInteraction,
+	type CommandInteraction,
 	Events,
 } from 'discord.js';
-import { Event } from '../types';
-import { get } from '../utils/api';
+
+import type { Command, Event } from '../types';
+import { get } from '../utils';
 
 export class InteractionCreateEvent implements Event {
 	public name = Events.InteractionCreate;
@@ -34,26 +35,26 @@ async function handleChatInputCommand(
 		await command.execute(interaction);
 	} catch (error) {
 		interaction.client.logger.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({
-				content: 'There was an error while executing this command!',
-				ephemeral: true,
-			});
-		} else {
-			await interaction.reply({
-				content: 'There was an error while executing this command!',
-				ephemeral: true,
-			});
-		}
+		try {
+			if (interaction.replied || interaction.deferred) {
+				interaction.followUp({
+					content: 'There was an error while executing this command!',
+					ephemeral: true,
+				});
+			} else {
+				interaction.reply({
+					content: 'There was an error while executing this command!',
+					ephemeral: true,
+				});
+			}
+		} catch {}
 	}
 }
 
 const genericAutocomplete: Record<
 	string,
-	(interaction: AutocompleteInteraction) => Promise<void>
-> = {
-	ckey: ckeyAutocomplete,
-};
+	NonNullable<Command['autocomplete']>
+> = { ckey };
 
 async function handleAutocomplete(interaction: AutocompleteInteraction) {
 	const command = interaction.client.commands.get(interaction.commandName);
@@ -74,27 +75,26 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 			return;
 		}
 
-		await command.autocomplete?.(interaction);
+		await command.autocomplete!(interaction);
 	} catch (error) {
 		interaction.client.logger.error(error);
+		try {
+			interaction.respond([]);
+		} catch {}
 	}
 }
 
-async function ckeyAutocomplete(interaction: AutocompleteInteraction) {
+async function ckey(interaction: AutocompleteInteraction) {
 	const focusedValue = interaction.options.getFocused(true);
 
-	try {
-		const { response } = await get<string[]>(
-			`autocomplete/ckey?ckey=${focusedValue.value}`
-		);
+	const { response } = await get<string[]>(
+		`autocomplete/ckey?ckey=${focusedValue.value}`
+	);
 
-		interaction.respond(
-			response.map((ckey) => ({
-				name: ckey,
-				value: ckey,
-			}))
-		);
-	} catch {
-		interaction.respond([]);
-	}
+	interaction.respond(
+		response!.map((ckey) => ({
+			name: ckey,
+			value: ckey,
+		}))
+	);
 }

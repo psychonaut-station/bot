@@ -1,14 +1,27 @@
-import {
+import type {
+	ChatInputCommandInteraction,
 	Collection,
 	SlashCommandBuilder,
-	SlashCommandSubcommandsOnlyBuilder,
-	ChatInputCommandInteraction,
-	AutocompleteInteraction,
-	Events,
 	SlashCommandOptionsOnlyBuilder,
+	SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
-import { Logger } from 'pino';
-import { Command } from './commands';
+import type { Logger } from 'pino';
+
+export interface Command {
+	builder:
+		| SlashCommandBuilder
+		| SlashCommandSubcommandsOnlyBuilder
+		| SlashCommandOptionsOnlyBuilder
+		| Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+	execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+	autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
+}
+
+export interface Event {
+	name: Events;
+	once?: boolean;
+	execute: (...args: any[]) => Promise<void>;
+}
 
 declare module 'discord.js' {
 	export interface Client {
@@ -17,24 +30,14 @@ declare module 'discord.js' {
 	}
 }
 
-export interface GenericResponse<T> {
-	status: number;
-	reason: string;
-	response: T;
-}
-
-export interface Command {
-	builder:
-		| SlashCommandBuilder
-		| SlashCommandSubcommandsOnlyBuilder
-		| SlashCommandOptionsOnlyBuilder
-		| Omit<SlashCommandBuilder, 'addSubcommandGroup' | 'addSubcommand'>;
-	execute: (interaction: ChatInputCommandInteraction) => Promise<void> | void;
-	autocomplete?: (interaction: AutocompleteInteraction) => Promise<void> | void;
-}
-
-export interface Event {
-	name: Events;
-	once?: boolean;
-	execute: (...args: any[]) => Promise<void> | void;
+declare module 'bun' {
+	export interface Env {
+		BOT_TOKEN: string;
+		APPLICATION_ID: string;
+		GUILD_ID: string;
+		API_URL: string;
+		API_KEY: string;
+		LOG_FILE: string;
+		COLORIZE: 'true' | 'false';
+	}
 }

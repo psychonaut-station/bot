@@ -1,7 +1,11 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { AxiosError } from 'axios';
-import { Command, GenericResponse as Response } from '../../types';
-import { post } from '../../utils/api';
+import {
+	type ChatInputCommandInteraction,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js';
+
+import type { Command } from '../../types';
+import { post } from '../../utils';
 
 export class VerifyCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -17,44 +21,171 @@ export class VerifyCommand implements Command {
 		const user = interaction.user;
 		const token = interaction.options.getString('token', true);
 
-		await interaction.deferReply({ ephemeral: true });
+		const { status, response: ckey } = await post<string>('verify', {
+			discord_id: user.id,
+			one_time_token: token,
+		});
 
-		try {
-			const { response: ckey } = await post<string>('verify', {
-				discord_id: user.id,
-				one_time_token: token,
-			});
-
+		if (status === 1) {
 			interaction.client.logger.info(
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
 
-			await interaction.editReply(
-				`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı!`
+			interaction.reply(
+				`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı.`
 			);
-		} catch (error) {
-			const axiosError = error as AxiosError;
+		} else if (status === 4) {
+			interaction.reply('Token geçersiz.');
+		} else if (status === 6) {
+			const conflict = ckey as any as string;
 
-			if (axiosError.response?.status === 409) {
-				const { response } = axiosError.response.data as Response<string>;
+			if (conflict.startsWith('@')) {
+				interaction.reply(
+					`Bu token <${conflict}> adlı Discord hesabına bağlı.`
+				);
+			} else {
+				interaction.reply(
+					`Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`
+				);
+			}
+		}
+	}
+}
 
-				if (response.startsWith('@')) {
-					await interaction.editReply(
-						`Bu token <${response}> adlı Discord hesabına bağlı!`
+export class UnverifyCommand implements Command {
+	public builder = new SlashCommandBuilder()
+		.setName('unverify')
+		.setDescription('Discord hesabı ile BYOND hesabının bağlantısını kaldırır.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('user')
+				.setDescription(
+					'Discord hesabı ile BYOND hesabının bağlantısını kaldırır.'
+				)
+				.addUserOption((option) =>
+					option
+						.setName('user')
+						.setDescription('Bağlantısı kaldırılacak Discord hesabı.')
+						.setRequired(true)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('ckey')
+				.setDescription(
+					'BYOND hesabı ile Discord hesabının bağlantısını kaldırır.'
+				)
+				.addStringOption((option) =>
+					option
+						.setName('ckey')
+						.setDescription('Bağlantısı kaldırılacak BYOND hesabının ckeyi.')
+						.setRequired(true)
+						.setAutocomplete(true)
+				)
+		);
+	public async execute(interaction: ChatInputCommandInteraction) {
+		switch (interaction.options.getSubcommand()) {
+			case 'user': {
+				const user = interaction.options.getUser('user', true);
+
+				const { status, response } = await post<string>('unverify', {
+					discord_id: user.id,
+				});
+
+				if (status === 1) {
+					interaction.client.logger.info(
+						`Unverified user [${user.tag}](${user.id}) with ckey \`${response}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
-				} else {
-					await interaction.editReply(
-						`Discord hesabın zaten \`${response}\` adlı BYOND hesabına bağlı!`
+
+					interaction.reply(
+						`<@${user.id}> adlı Discord hesabı ile \`${response}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
 					);
+				} else if (status === 6) {
+					interaction.reply('Hesap zaten bağlı değil.');
 				}
 
-				return;
-			} else if (axiosError.response?.status === 404) {
-				await interaction.editReply('Token geçersiz!');
-				return;
+				break;
 			}
+			case 'ckey': {
+				const ckey = interaction.options.getString('ckey', true);
 
-			throw axiosError;
+				const { status, response } = await post<string>('unverify', {
+					ckey,
+				});
+
+				if (status === 1) {
+					const userId = response.slice(1);
+					const user = await interaction.client.users.fetch(userId);
+
+					interaction.client.logger.info(
+						`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
+					);
+
+					interaction.reply(
+						`\`${ckey}\` adlı BYOND hesabı ile <${response}> adlı Discord hesabının bağlantısı kaldırıldı.`
+					);
+				} else if (status === 4) {
+					interaction.reply('Hesap bulunamadı.');
+				} else if (status === 6) {
+					interaction.reply('Hesap zaten bağlı değil.');
+				}
+
+				break;
+			}
+		}
+	}
+}
+
+export class ForceVerifyCommand implements Command {
+	public builder = new SlashCommandBuilder()
+		.setName('forceverify')
+		.setDescription('Discord hesabı ile BYOND hesabını bağlar.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.addUserOption((option) =>
+			option
+				.setName('user')
+				.setDescription('Bağlanılacak Discord hesabı.')
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName('ckey')
+				.setDescription('Bağlanılacak BYOND hesabının ckeyi.')
+				.setRequired(true)
+				.setAutocomplete(true)
+		);
+	public async execute(interaction: ChatInputCommandInteraction) {
+		const user = interaction.options.getUser('user', true);
+		const ckey = interaction.options.getString('ckey', true).toLowerCase();
+
+		const { status, response } = await post<string>('verify', {
+			discord_id: user.id,
+			ckey: ckey,
+		});
+
+		if (status === 1) {
+			interaction.client.logger.info(
+				`Force-verified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
+			);
+
+			interaction.reply(
+				`<@${user.id}> adlı Discord hesabı başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı.`
+			);
+		} else if (status === 4) {
+			interaction.reply('Oyuncu bulunamadı.');
+		} else if (status === 6) {
+			const conflict = response as any as string;
+
+			if (conflict.startsWith('@')) {
+				interaction.reply(
+					`Bu ckey zaten <${conflict}> adlı Discord hesabına bağlı!`
+				);
+			} else {
+				interaction.reply(
+					`Bu Discord hesabı zaten \`${conflict}\` adlı BYOND hesabına bağlı!`
+				);
+			}
 		}
 	}
 }
