@@ -1,5 +1,9 @@
 import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 	type ChatInputCommandInteraction,
+	type MessageActionRowComponentBuilder as MessageActionRow,
 	SlashCommandBuilder,
 } from 'discord.js';
 
@@ -24,6 +28,8 @@ type Status =
 			server_status: 0;
 	  };
 
+const CONNECT_URL = 'https://psychonautstation.com/connect';
+
 export class CheckCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('check')
@@ -34,10 +40,20 @@ export class CheckCommand implements Command {
 		if (status === 1) {
 			const server = response[0];
 
+			const connect = new ButtonBuilder()
+				.setLabel('Bağlan')
+				.setStyle(ButtonStyle.Link)
+				.setURL(CONNECT_URL);
+
+			const row = new ActionRowBuilder<MessageActionRow>().addComponents(
+				connect
+			);
+
 			if (server.server_status === 1) {
-				interaction.reply(
-					`Round #${server.round_id}: ${server.players} oyuncu ile devam etmekte.`
-				);
+				interaction.reply({
+					content: `Round #${server.round_id}: ${server.players} oyuncu ile devam etmekte.`,
+					components: [row],
+				});
 			} else {
 				interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
 			}
