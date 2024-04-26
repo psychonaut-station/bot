@@ -28,7 +28,7 @@ type Status =
 			server_status: 0;
 	  };
 
-const CONNECT_URL = 'https://psychonautstation.com/connect';
+const CONNECT_URL = 'https://turkb.us/connect';
 
 export class CheckCommand implements Command {
 	public builder = new SlashCommandBuilder()
