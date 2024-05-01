@@ -46,11 +46,11 @@ export class WhoCommand implements Command {
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('ic-name')
+				.setName('character')
 				.setDescription('Oyuncunun karakterinin adı ile ckeyini gösterir.')
 				.addStringOption((option) =>
 					option
-						.setName('ic-name')
+						.setName('character')
 						.setDescription('Oyuncunun karakterinin adı')
 						.setRequired(true)
 						.setAutocomplete(true)
@@ -90,8 +90,8 @@ export class WhoCommand implements Command {
 
 				break;
 			}
-			case 'ic-name': {
-				let icName = interaction.options.getString('ic-name', true);
+			case 'character': {
+				let icName = interaction.options.getString('character', true);
 				let exactMatch = false;
 
 				if (icName.endsWith('\u00ad')) {
@@ -126,7 +126,7 @@ export class WhoCommand implements Command {
 	public async autocomplete(interaction: AutocompleteInteraction) {
 		const focusedValue = interaction.options.getFocused(true);
 
-		if (focusedValue.name === 'ic-name') {
+		if (focusedValue.name === 'character') {
 			const { response } = await get<{ name: string; ckey: string }[]>(
 				`autocomplete/ic_name?ic_name=${focusedValue.value}`
 			);
