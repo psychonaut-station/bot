@@ -76,7 +76,7 @@ export class PlaytimeCommand implements Command {
 					return `${entry.ckey}: ${hoursString} saat`;
 				};
 
-				interaction.reply(top!.map(formatEntry).join('\n'));
+				interaction.reply(`**${job}**\n` + top!.map(formatEntry).join('\n'));
 
 				break;
 			}
@@ -121,7 +121,8 @@ export class PlaytimeCommand implements Command {
 					};
 
 					const updateReply = () => {
-						content = player
+						content = `**${ckey}**\n`;
+						content += player
 							.slice((page - 1) * 15, page * 15)
 							.map(formatEntry)
 							.join('\n');
