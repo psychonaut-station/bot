@@ -88,93 +88,7 @@ export class PlaytimeCommand implements Command {
 				);
 
 				if (status === 1) {
-					if (player.length === 0) {
-						interaction.reply('Oyuncu daha önce hiçbir meslek oynamamış.');
-						return;
-					}
-
-					const maxPage = Math.ceil(player.length / 15);
-
-					const next = new ButtonBuilder()
-						.setCustomId('playtimeNext')
-						.setLabel(`Sonraki (1/${maxPage})`)
-						.setStyle(ButtonStyle.Secondary);
-
-					const previous = new ButtonBuilder()
-						.setCustomId('playtimePrevious')
-						.setLabel('Önceki')
-						.setStyle(ButtonStyle.Secondary);
-
-					const row = new ActionRowBuilder<MessageActionRow>().addComponents(
-						previous,
-						next
-					);
-
-					let page = 1;
-					let content = '';
-
-					const formatEntry = (entry: PlayerPlaytime) => {
-						const hours = Math.floor((entry.minutes / 60) * 10) / 10;
-						const hoursString = hours.toString().replace('.', ',');
-
-						return `${entry.job}: ${hoursString} saat`;
-					};
-
-					const updateReply = () => {
-						content = `**${ckey}**\n`;
-						content += player
-							.slice((page - 1) * 15, page * 15)
-							.map(formatEntry)
-							.join('\n');
-						next.setLabel(`Sonraki (${page}/${maxPage})`);
-						next.setDisabled(page === maxPage);
-						previous.setDisabled(page === 1);
-					};
-
-					updateReply();
-
-					let response = await interaction.reply({
-						content,
-						fetchReply: true,
-						components: [row],
-					});
-
-					for (;;) {
-						try {
-							const pagination = await response.awaitMessageComponent({
-								filter: (i) => i.user.id === interaction.user.id,
-								time: 60_000,
-							});
-
-							if (pagination.customId === 'playtimeNext') {
-								if (page < maxPage) {
-									page += 1;
-								}
-							} else {
-								if (page > 1) {
-									page -= 1;
-								}
-							}
-
-							updateReply();
-
-							response = await pagination.update({
-								content,
-								fetchReply: true,
-								components: [row],
-							});
-						} catch {
-							next.setDisabled(true);
-							previous.setDisabled(true);
-
-							interaction.editReply({
-								content,
-								components: [row],
-							});
-
-							break;
-						}
-					}
+					handlePlaytimePlayerReply(ckey, player, interaction);
 				} else if (status === 4) {
 					interaction.reply('Oyuncu bulunamadı.');
 				}
@@ -197,6 +111,126 @@ export class PlaytimeCommand implements Command {
 			}
 
 			interaction.respond(response!.map((job) => ({ name: job, value: job })));
+		}
+	}
+}
+
+export class ViewPlaytimeCommand implements Command {
+	public builder = new SlashCommandBuilder()
+		.setName('view-playtime')
+		.setDescription('Hangi mesleğe ne kadar süre harcadığını gösterir.');
+	public async execute(interaction: ChatInputCommandInteraction) {
+		const { status, response: ckey } = await get<string>(
+			`player/discord/?discord_id=${interaction.user.id}`
+		);
+
+		if (status === 1) {
+			const { status, response: player } = await get<PlayerPlaytime[]>(
+				`player/roletime/?ckey=${ckey}`
+			);
+
+			if (status === 1) {
+				handlePlaytimePlayerReply(ckey, player, interaction);
+			} else if (status === 4) {
+				// unreachable
+				interaction.reply('Oyuncu bulunamadı.');
+			}
+		} else if (status === 6) {
+			interaction.reply('Discord hesabın bağlı değil.');
+		}
+	}
+}
+
+async function handlePlaytimePlayerReply(
+	ckey: string,
+	player: PlayerPlaytime[],
+	interaction: ChatInputCommandInteraction
+) {
+	if (player.length === 0) {
+		interaction.reply('Oyuncu daha önce hiçbir meslek oynamamış.');
+		return;
+	}
+
+	const maxPage = Math.ceil(player.length / 15);
+
+	const next = new ButtonBuilder()
+		.setCustomId('playtimeNext')
+		.setLabel(`Sonraki (1/${maxPage})`)
+		.setStyle(ButtonStyle.Secondary);
+
+	const previous = new ButtonBuilder()
+		.setCustomId('playtimePrevious')
+		.setLabel('Önceki')
+		.setStyle(ButtonStyle.Secondary);
+
+	const row = new ActionRowBuilder<MessageActionRow>().addComponents(
+		previous,
+		next
+	);
+
+	let page = 1;
+	let content = '';
+
+	const formatEntry = (entry: PlayerPlaytime) => {
+		const hours = Math.floor((entry.minutes / 60) * 10) / 10;
+		const hoursString = hours.toString().replace('.', ',');
+
+		return `${entry.job}: ${hoursString} saat`;
+	};
+
+	const updateReply = () => {
+		content = `**${ckey}**\n`;
+		content += player
+			.slice((page - 1) * 15, page * 15)
+			.map(formatEntry)
+			.join('\n');
+		next.setLabel(`Sonraki (${page}/${maxPage})`);
+		next.setDisabled(page === maxPage);
+		previous.setDisabled(page === 1);
+	};
+
+	updateReply();
+
+	let response = await interaction.reply({
+		content,
+		fetchReply: true,
+		components: [row],
+	});
+
+	for (;;) {
+		try {
+			const pagination = await response.awaitMessageComponent({
+				filter: (i) => i.user.id === interaction.user.id,
+				time: 60_000,
+			});
+
+			if (pagination.customId === 'playtimeNext') {
+				if (page < maxPage) {
+					page += 1;
+				}
+			} else {
+				if (page > 1) {
+					page -= 1;
+				}
+			}
+
+			updateReply();
+
+			response = await pagination.update({
+				content,
+				fetchReply: true,
+				components: [row],
+			});
+		} catch {
+			next.setDisabled(true);
+			previous.setDisabled(true);
+
+			interaction.editReply({
+				content,
+				components: [row],
+			});
+
+			break;
 		}
 	}
 }
