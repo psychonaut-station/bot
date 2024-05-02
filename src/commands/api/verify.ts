@@ -31,22 +31,25 @@ export class VerifyCommand implements Command {
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
 
-			interaction.reply(
-				`Discord hesabın başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı.`
-			);
+			interaction.reply({
+				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
+				ephemeral: true,
+			});
 		} else if (status === 4) {
-			interaction.reply('Token geçersiz.');
+			interaction.reply({ content: 'Token geçersiz.', ephemeral: true });
 		} else if (status === 6) {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
-				interaction.reply(
-					`Bu token <${conflict}> adlı Discord hesabına bağlı.`
-				);
+				interaction.reply({
+					content: `Bu token <${conflict}> adlı Discord hesabına bağlı.`,
+					ephemeral: true,
+				});
 			} else {
-				interaction.reply(
-					`Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`
-				);
+				interaction.reply({
+					content: `Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`,
+					ephemeral: true,
+				});
 			}
 		}
 	}
@@ -139,7 +142,7 @@ export class UnverifyCommand implements Command {
 
 export class ForceVerifyCommand implements Command {
 	public builder = new SlashCommandBuilder()
-		.setName('forceverify')
+		.setName('force-verify')
 		.setDescription('Discord hesabı ile BYOND hesabını bağlar.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.addUserOption((option) =>
@@ -170,7 +173,7 @@ export class ForceVerifyCommand implements Command {
 			);
 
 			interaction.reply(
-				`<@${user.id}> adlı Discord hesabı başarıyla \`${ckey}\` adlı BYOND hesabına bağlandı.`
+				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
 			);
 		} else if (status === 4) {
 			interaction.reply('Oyuncu bulunamadı.');
