@@ -50,8 +50,15 @@ export class CheckCommand implements Command {
 			);
 
 			if (server.server_status === 1) {
+				const gameState =
+					server.gamestate <= 2
+						? 'başlıyor'
+						: server.gamestate === 3
+							? 'devam etmekte'
+							: 'bitmek üzere';
+
 				interaction.reply({
-					content: `Round #${server.round_id}: ${server.players} oyuncu ile devam etmekte.`,
+					content: `Round #${server.round_id}: ${server.players} oyuncu ile ${gameState}.`,
 					components: [row],
 				});
 			} else {
