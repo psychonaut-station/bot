@@ -1,3 +1,4 @@
+export * from './api/characters';
 export * from './api/check';
 export * from './api/player';
 export * from './api/playtime';
