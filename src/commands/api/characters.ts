@@ -11,7 +11,7 @@ export class CharactersCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('characters')
 		.setDescription('Oyuncunun şimdiye kadar oynadığı karakterleri gösterir.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
 		.addStringOption((option) =>
 			option
 				.setName('ckey')

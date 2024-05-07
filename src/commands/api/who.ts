@@ -20,7 +20,7 @@ export class WhoCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('who')
 		.setDescription('Oyuncunun Discord hesabını gösterir.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('ckey')
