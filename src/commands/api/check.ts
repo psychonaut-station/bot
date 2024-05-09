@@ -58,7 +58,7 @@ export class CheckCommand implements Command {
 							: 'bitmek üzere';
 
 				interaction.reply({
-					content: `Round #${server.round_id}: ${server.players} oyuncu ile ${gameState}.`,
+					content: `Round #${server.round_id}: ${server.players} oyuncu ile ${server.map} haritasında ${gameState}.`,
 					components: [row],
 				});
 			} else {
