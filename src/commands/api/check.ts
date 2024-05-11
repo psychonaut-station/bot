@@ -35,10 +35,10 @@ export class CheckCommand implements Command {
 		.setName('check')
 		.setDescription('Round durumunu gösterir.');
 	public async execute(interaction: ChatInputCommandInteraction) {
-		const { status, response } = await get<Status[]>('server');
+		const { statusCode, body: servers } = await get<Status[]>('server');
 
-		if (status === 1) {
-			const server = response[0];
+		if (statusCode === 200) {
+			const server = servers[0];
 
 			const connect = new ButtonBuilder()
 				.setLabel('Bağlan')
