@@ -21,12 +21,12 @@ export class VerifyCommand implements Command {
 		const user = interaction.user;
 		const token = interaction.options.getString('token', true);
 
-		const { status, response: ckey } = await post<string>('verify', {
+		const { statusCode, body: ckey } = await post<string>('verify', {
 			discord_id: user.id,
 			one_time_token: token,
 		});
 
-		if (status === 1) {
+		if (statusCode === 200) {
 			interaction.client.logger.info(
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
@@ -35,9 +35,9 @@ export class VerifyCommand implements Command {
 				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
 				ephemeral: true,
 			});
-		} else if (status === 4) {
+		} else if (statusCode === 404) {
 			interaction.reply({ content: 'Token geçersiz.', ephemeral: true });
-		} else if (status === 6) {
+		} else if (statusCode === 409) {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
@@ -92,19 +92,19 @@ export class UnverifyCommand implements Command {
 			case 'user': {
 				const user = interaction.options.getUser('user', true);
 
-				const { status, response } = await post<string>('unverify', {
+				const { statusCode, body: ckey } = await post<string>('unverify', {
 					discord_id: user.id,
 				});
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					interaction.client.logger.info(
-						`Unverified user [${user.tag}](${user.id}) with ckey \`${response}\` by [${interaction.user.tag}](${interaction.user.id})`
+						`Unverified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
 					interaction.reply(
-						`<@${user.id}> adlı Discord hesabı ile \`${response}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
+						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
 					);
-				} else if (status === 6) {
+				} else if (statusCode === 409) {
 					interaction.reply('Hesap zaten bağlı değil.');
 				}
 
@@ -113,12 +113,12 @@ export class UnverifyCommand implements Command {
 			case 'ckey': {
 				const ckey = interaction.options.getString('ckey', true);
 
-				const { status, response } = await post<string>('unverify', {
+				const { statusCode, body: discordId } = await post<string>('unverify', {
 					ckey,
 				});
 
-				if (status === 1) {
-					const userId = response.slice(1);
+				if (statusCode === 200) {
+					const userId = discordId.slice(1);
 					const user = await interaction.client.users.fetch(userId);
 
 					interaction.client.logger.info(
@@ -126,11 +126,11 @@ export class UnverifyCommand implements Command {
 					);
 
 					interaction.reply(
-						`\`${ckey}\` adlı BYOND hesabı ile <${response}> adlı Discord hesabının bağlantısı kaldırıldı.`
+						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
 					);
-				} else if (status === 4) {
+				} else if (statusCode === 404) {
 					interaction.reply('Hesap bulunamadı.');
-				} else if (status === 6) {
+				} else if (statusCode === 409) {
 					interaction.reply('Hesap zaten bağlı değil.');
 				}
 
@@ -162,12 +162,12 @@ export class ForceVerifyCommand implements Command {
 		const user = interaction.options.getUser('user', true);
 		const ckey = interaction.options.getString('ckey', true).toLowerCase();
 
-		const { status, response } = await post<string>('verify', {
+		const { statusCode, body } = await post<string>('verify', {
 			discord_id: user.id,
 			ckey: ckey,
 		});
 
-		if (status === 1) {
+		if (statusCode === 200) {
 			interaction.client.logger.info(
 				`Force-verified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 			);
@@ -175,10 +175,10 @@ export class ForceVerifyCommand implements Command {
 			interaction.reply(
 				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
 			);
-		} else if (status === 4) {
+		} else if (statusCode === 404) {
 			interaction.reply('Oyuncu bulunamadı.');
-		} else if (status === 6) {
-			const conflict = response as any as string;
+		} else if (statusCode === 409) {
+			const conflict = body as any as string;
 
 			if (conflict.startsWith('@')) {
 				interaction.reply(

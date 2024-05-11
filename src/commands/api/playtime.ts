@@ -60,7 +60,7 @@ export class PlaytimeCommand implements Command {
 			case 'top': {
 				const job = interaction.options.getString('job', true);
 
-				const { response: top } = await get<JobPlaytime[]>(
+				const { body: top } = await get<JobPlaytime[]>(
 					`player/roletime/top/?job=${job}`
 				);
 
@@ -83,13 +83,13 @@ export class PlaytimeCommand implements Command {
 			case 'player': {
 				const ckey = interaction.options.getString('ckey', true);
 
-				const { status, response: player } = await get<PlayerPlaytime[]>(
+				const { statusCode, body: player } = await get<PlayerPlaytime[]>(
 					`player/roletime/?ckey=${ckey}`
 				);
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					handlePlaytimePlayerReply(ckey, player, interaction);
-				} else if (status === 4) {
+				} else if (statusCode === 404) {
 					interaction.reply('Oyuncu bulunamadı.');
 				}
 
@@ -101,16 +101,16 @@ export class PlaytimeCommand implements Command {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'job') {
-			const { response } = await get<string[]>(
+			const { body: jobs } = await get<string[]>(
 				`autocomplete/job?job=${focusedValue.value}`
 			);
 
-			if (response!.length === 0) {
+			if (jobs!.length === 0) {
 				interaction.respond([]);
 				return;
 			}
 
-			interaction.respond(response!.map((job) => ({ name: job, value: job })));
+			interaction.respond(jobs!.map((job) => ({ name: job, value: job })));
 		}
 	}
 }
@@ -120,22 +120,22 @@ export class ViewPlaytimeCommand implements Command {
 		.setName('view-playtime')
 		.setDescription('Hangi mesleğe ne kadar süre harcadığını gösterir.');
 	public async execute(interaction: ChatInputCommandInteraction) {
-		const { status, response: ckey } = await get<string>(
+		const { statusCode, body: ckey } = await get<string>(
 			`player/discord/?discord_id=${interaction.user.id}`
 		);
 
-		if (status === 1) {
-			const { status, response: player } = await get<PlayerPlaytime[]>(
+		if (statusCode === 200) {
+			const { statusCode, body: player } = await get<PlayerPlaytime[]>(
 				`player/roletime/?ckey=${ckey}`
 			);
 
-			if (status === 1) {
+			if (statusCode === 200) {
 				handlePlaytimePlayerReply(ckey, player, interaction);
-			} else if (status === 4) {
+			} else if (statusCode === 404) {
 				// unreachable
 				interaction.reply('Oyuncu bulunamadı.');
 			}
-		} else if (status === 6) {
+		} else if (statusCode === 409) {
 			interaction.reply('Discord hesabın bağlı değil.');
 		}
 	}

@@ -87,11 +87,11 @@ export class PlayerCommand implements Command {
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
 
-				const { status, response: player } = await get<Player>(
+				const { statusCode, body: player } = await get<Player>(
 					`player/?ckey=${ckey}`
 				);
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					const firstSeen = timestamp(parseDate(player.first_seen), 'R');
 					const lastSeen = timestamp(parseDate(player.last_seen), 'R');
 					const byondAge = player.byond_age
@@ -102,7 +102,7 @@ export class PlayerCommand implements Command {
 						content: `Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`,
 						ephemeral,
 					});
-				} else if (status === 4) {
+				} else if (statusCode === 404) {
 					interaction.reply({
 						content: 'Oyuncu bulunamadı.',
 						ephemeral,
@@ -116,11 +116,11 @@ export class PlayerCommand implements Command {
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
 
-				const { status, response: bans } = await get<Ban[]>(
+				const { statusCode, body: bans } = await get<Ban[]>(
 					`player/ban/?ckey=${ckey}`
 				);
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					if (bans.length === 0) {
 						interaction.reply({
 							content: 'Oyuncunun ban geçmişi bulunmamaktadır.',
@@ -170,7 +170,7 @@ export class PlayerCommand implements Command {
 							ephemeral,
 						});
 					}
-				} else if (status === 4) {
+				} else if (statusCode === 404) {
 					interaction.reply({
 						content: 'Oyuncu bulunamadı.',
 						ephemeral,

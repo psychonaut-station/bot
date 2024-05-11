@@ -61,15 +61,15 @@ export class WhoCommand implements Command {
 			case 'ckey': {
 				const ckey = interaction.options.getString('ckey', true);
 
-				const { status, response: user } = await get<User>(
+				const { statusCode, body: user } = await get<User>(
 					`player/discord/?ckey=${ckey}`
 				);
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					interaction.reply(`Oyuncunun Discord hesabı: <@${user.id}>`);
-				} else if (status === 4) {
+				} else if (statusCode === 404) {
 					interaction.reply('Oyuncu bulunamadı.');
-				} else if (status === 6) {
+				} else if (statusCode === 409) {
 					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
@@ -78,13 +78,13 @@ export class WhoCommand implements Command {
 			case 'user': {
 				const user = interaction.options.getUser('user', true);
 
-				const { status, response: ckey } = await get<string>(
+				const { statusCode, body: ckey } = await get<string>(
 					`player/discord/?discord_id=${user.id}`
 				);
 
-				if (status === 1) {
+				if (statusCode === 200) {
 					interaction.reply(`Oyuncunun ckeyi: \`${ckey}\``);
-				} else if (status === 6) {
+				} else if (statusCode === 409) {
 					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
@@ -99,17 +99,17 @@ export class WhoCommand implements Command {
 					exactMatch = true;
 				}
 
-				const { response } = await get<{ name: string; ckey: string }[]>(
+				const { body: names } = await get<{ name: string; ckey: string }[]>(
 					`autocomplete/ic_name?ic_name=${icName}`
 				);
 
-				let filteredResponse = response!;
+				let filteredNames = names!;
 
 				if (exactMatch) {
-					filteredResponse = response!.filter((entry) => entry.name === icName);
+					filteredNames = names!.filter((entry) => entry.name === icName);
 				}
 
-				if (filteredResponse.length === 0) {
+				if (filteredNames.length === 0) {
 					interaction.reply('Oyuncu bulunamadı.');
 					return;
 				}
@@ -117,7 +117,7 @@ export class WhoCommand implements Command {
 				const formatEntry = (entry: { name: string; ckey: string }) =>
 					`${entry.name} - \`${entry.ckey}\``;
 
-				interaction.reply(filteredResponse.map(formatEntry).join('\n'));
+				interaction.reply(filteredNames.map(formatEntry).join('\n'));
 
 				break;
 			}
@@ -127,16 +127,16 @@ export class WhoCommand implements Command {
 		const focusedValue = interaction.options.getFocused(true);
 
 		if (focusedValue.name === 'character') {
-			const { response } = await get<{ name: string; ckey: string }[]>(
+			const { body } = await get<{ name: string; ckey: string }[]>(
 				`autocomplete/ic_name?ic_name=${focusedValue.value}`
 			);
 
-			if (response!.length === 0) {
+			if (body!.length === 0) {
 				interaction.respond([]);
 				return;
 			}
 
-			const names = response!.map(({ name }) => name);
+			const names = body!.map(({ name }) => name);
 			const uniqueNames = [...new Set(names)];
 
 			interaction.respond(

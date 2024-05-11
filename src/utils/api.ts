@@ -1,61 +1,9 @@
 import { request } from 'undici';
 
-interface Generic<T> {
-	status: number;
-	reason: string;
-	response: T;
-}
-
-interface Failure extends Generic<null> {
-	status: 0;
-	reason: 'failure';
-	response: null;
-}
-
-interface Success<T> extends Generic<T> {
-	status: 1;
-	reason: 'success';
-	response: T;
-}
-
-interface Forbidden extends Generic<null> {
-	status: 2;
-	reason: 'forbidden';
-	response: null;
-}
-
-interface Unauthorized extends Generic<null> {
-	status: 3;
-	reason: 'unauthorized';
-	response: null;
-}
-
-interface NotFound extends Generic<null> {
-	status: 4;
-	reason: 'not found';
-	response: null;
-}
-
-interface BadRequest extends Generic<null> {
-	status: 5;
-	reason: 'bad request';
-	response: null;
-}
-
-interface Conflict extends Generic<null> {
-	status: 6;
-	reason: 'conflict';
-	response: null;
-}
-
 type Response<T> =
-	| Failure
-	| Success<T>
-	| Forbidden
-	| Unauthorized
-	| NotFound
-	| BadRequest
-	| Conflict;
+	| { statusCode: 200; body: T }
+	| { statusCode: 404; body: undefined }
+	| { statusCode: 409; body: undefined };
 
 export async function get<T>(endpoint: string) {
 	const response = await request(`${Bun.env.API_URL}/${endpoint}`, {
@@ -68,7 +16,16 @@ export async function get<T>(endpoint: string) {
 		throw new Error('Internal server error');
 	}
 
-	return (await response.body.json()) as Response<T>;
+	let body;
+
+	if (response.headers['content-type'] === 'application/json') {
+		body = await response.body.json();
+	}
+
+	return {
+		statusCode: response.statusCode,
+		body: body as T,
+	} as Response<T>;
 }
 
 export async function post<T>(endpoint: string, body: any) {
@@ -85,5 +42,14 @@ export async function post<T>(endpoint: string, body: any) {
 		throw new Error('Internal server error');
 	}
 
-	return (await response.body.json()) as Response<T>;
+	let body_;
+
+	if (response.headers['content-type'] === 'application/json') {
+		body_ = await response.body.json();
+	}
+
+	return {
+		statusCode: response.statusCode,
+		body: body_ as T,
+	} as Response<T>;
 }
