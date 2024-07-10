@@ -136,7 +136,12 @@ export class ViewPlaytimeCommand implements Command {
 				interaction.reply('Oyuncu bulunamadı.');
 			}
 		} else if (statusCode === 409) {
-			interaction.reply('Discord hesabın bağlı değil.');
+			await interaction.reply('Discord hesabın bağlı değil.');
+			interaction.followUp({
+				content:
+					"Hesabını bağlamak için oyun içerisinden `OOC` sekmesindeki `Verify Discord Account`'u kullan.",
+				ephemeral: true,
+			});
 		}
 	}
 }
