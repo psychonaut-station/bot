@@ -11,10 +11,14 @@ import { get } from '../utils';
 export class InteractionCreateEvent implements Event {
 	public name = Events.InteractionCreate;
 	public async execute(interaction: CommandInteraction) {
-		if (interaction.isChatInputCommand()) {
-			await handleChatInputCommand(interaction);
-		} else if (interaction.isAutocomplete()) {
-			await handleAutocomplete(interaction);
+		try {
+			if (interaction.isChatInputCommand()) {
+				await handleChatInputCommand(interaction);
+			} else if (interaction.isAutocomplete()) {
+				await handleAutocomplete(interaction);
+			}
+		} catch (error) {
+			interaction.client.logger.error(error);
 		}
 	}
 }
