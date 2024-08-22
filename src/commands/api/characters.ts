@@ -22,20 +22,18 @@ export class CharactersCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		const ckey = interaction.options.getString('ckey', true);
 
-		const { statusCode, body: characters } = await get<string[]>(
+		const { statusCode, body: characters } = await get<[string, number][]>(
 			`player/characters?ckey=${ckey}`
 		);
 
 		if (statusCode === 200) {
 			if (characters.length === 0) {
-				interaction.reply(
-					'Oyuncu daha önce bir karakter ile ya hiç ya da 2 seferden fazla oynamamış.'
-				);
+				interaction.reply('Oyuncu daha önce bir karakter ile hiç oynamamış.');
 				return;
 			}
 
 			interaction.reply(
-				`${characters.map((character) => `\`\`${character}\`\``).join(', ')}`
+				`${characters.map(([character]) => `\`\`${character}\`\``).join(', ')}`
 			);
 		} else if (statusCode === 404) {
 			interaction.reply('Oyuncu bulunamadı.');
