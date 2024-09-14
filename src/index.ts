@@ -3,7 +3,12 @@ import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { createLogger, deployCommands } from './utils';
 
 const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+	],
 });
 
 client.logger = await createLogger();
