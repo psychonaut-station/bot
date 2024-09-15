@@ -13,17 +13,17 @@ export class VerifyCommand implements Command {
 		.setDescription('Discord hesabın ile BYOND hesabını bağlar.')
 		.addStringOption((option) =>
 			option
-				.setName('token')
-				.setDescription('Oyun içerisinden alınan tek kullanımlık token.')
+				.setName('code')
+				.setDescription('Oyun içerisinden alınan tek kullanımlık kod.')
 				.setRequired(true)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
 		const user = interaction.user;
-		const token = interaction.options.getString('token', true);
+		const code = interaction.options.getString('code', true);
 
 		const { statusCode, body: ckey } = await post<string>('verify', {
 			discord_id: user.id,
-			one_time_token: token,
+			one_time_token: code,
 		});
 
 		if (statusCode === 200) {
@@ -36,13 +36,13 @@ export class VerifyCommand implements Command {
 				ephemeral: true,
 			});
 		} else if (statusCode === 404) {
-			interaction.reply({ content: 'Token geçersiz.', ephemeral: true });
+			interaction.reply({ content: 'Kod geçersiz.', ephemeral: true });
 		} else if (statusCode === 409) {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
 				interaction.reply({
-					content: `Bu token <${conflict}> adlı Discord hesabına bağlı.`,
+					content: `Bu kod <${conflict}> adlı Discord hesabına bağlı.`,
 					ephemeral: true,
 				});
 			} else {
