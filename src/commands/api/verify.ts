@@ -4,6 +4,7 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
+import { verifyRegex } from '../../constants';
 import type { Command } from '../../types';
 import { post } from '../../utils';
 
@@ -36,6 +37,15 @@ export class VerifyCommand implements Command {
 				ephemeral: true,
 			});
 		} else if (statusCode === 404) {
+			if (!verifyRegex.test(code)) {
+				interaction.reply({
+					content:
+						'Kod şekille uyuşmuyor, lütfen kodu şekle uygun girin.\nÖrneğin: `/verify 123-456`',
+					ephemeral: true,
+				});
+				return;
+			}
+
 			interaction.reply({ content: 'Kod geçersiz.', ephemeral: true });
 		} else if (statusCode === 409) {
 			const conflict = ckey as any as string;
