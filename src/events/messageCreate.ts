@@ -9,7 +9,7 @@ export class MessageCreateEvent implements Event {
 	public async execute(message: Message) {
 		if (message.guildId === GUILD_ID) {
 			const [command, token] = message.content.split(' ');
-			if (command === '/verify' && /^([A-z']+-){5}[A-z']+$/.test(token)) {
+			if (command === '/verify' && /^\d{3}-\d{3}$/.test(token)) {
 				try {
 					await message.reply({
 						content:
