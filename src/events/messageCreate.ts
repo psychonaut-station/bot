@@ -9,13 +9,11 @@ export class MessageCreateEvent implements Event {
 	public async execute(message: Message) {
 		if (message.guildId === GUILD_ID) {
 			const [command, token] = message.content.split(' ');
-			if (command === '/verify' && /^([A-z']+-){5}[A-z']+$/.test(token)) {
+			if (command === '/verify' && /^\d{3}-\d{3}$/.test(token)) {
 				try {
-					await message.reply({
-						content:
-							'Hesabını doğrulamak için /verify yazdıkdan sonra çıkan komutu kullanman gerek, ayrıca doğrulama tokenini bir başkası ile paylaşmamalısın.',
-						options: { ephemeral: true },
-					});
+					await message.reply(
+						'Hesabını doğrulamak için /verify yazdıkdan sonra çıkan komutu kullanman gerek, ayrıca doğrulama kodunu bir başkası ile paylaşmamalısın.'
+					);
 					message.delete();
 				} catch {}
 			}
