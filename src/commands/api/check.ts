@@ -7,8 +7,8 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
-import type { Command } from '../../types';
-import { get } from '../../utils/api';
+import type { Command } from '@/types';
+import { get } from '@/utils';
 
 type Status =
 	| {

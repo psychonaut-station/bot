@@ -1,13 +1,12 @@
 import { type Client, REST, Routes } from 'discord.js';
 
+import { applicationId, botToken, guildId } from '@/config';
+
 export async function deployCommands(client: Client) {
-	const rest = new REST().setToken(Bun.env.BOT_TOKEN);
+	const rest = new REST().setToken(botToken);
 	const commands = client.commands.map((command) => command.builder.toJSON());
 
-	await rest.put(
-		Routes.applicationGuildCommands(Bun.env.APPLICATION_ID, Bun.env.GUILD_ID),
-		{
-			body: commands,
-		}
-	);
+	await rest.put(Routes.applicationGuildCommands(applicationId, guildId), {
+		body: commands,
+	});
 }

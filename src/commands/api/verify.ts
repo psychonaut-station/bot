@@ -4,9 +4,9 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
-import { verifyRegex } from '../../constants';
-import type { Command } from '../../types';
-import { post } from '../../utils';
+import { verifyRegex } from '@/constants';
+import type { Command } from '@/types';
+import { post } from '@/utils';
 
 export class VerifyCommand implements Command {
 	public builder = new SlashCommandBuilder()

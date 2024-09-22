@@ -5,8 +5,8 @@ import {
 	Events,
 } from 'discord.js';
 
-import type { Command, Event } from '../types';
-import { get } from '../utils';
+import type { Command, Event } from '@/types';
+import { get } from '@/utils';
 
 export class InteractionCreateEvent implements Event {
 	public name = Events.InteractionCreate;

@@ -1,14 +1,16 @@
 import { request } from 'undici';
 
+import config from '@/config';
+
 type Response<T> =
 	| { statusCode: 200; body: T }
 	| { statusCode: 404; body: undefined }
 	| { statusCode: 409; body: undefined };
 
 export async function get<T>(endpoint: string) {
-	const response = await request(`${Bun.env.API_URL}/${endpoint}`, {
+	const response = await request(`${config.api.url}/${endpoint}`, {
 		headers: {
-			'X-API-KEY': Bun.env.API_KEY,
+			'X-API-KEY': config.api.token,
 		},
 	});
 
@@ -29,10 +31,10 @@ export async function get<T>(endpoint: string) {
 }
 
 export async function post<T>(endpoint: string, body: any) {
-	const response = await request(`${Bun.env.API_URL}/${endpoint}`, {
+	const response = await request(`${config.api.url}/${endpoint}`, {
 		method: 'POST',
 		headers: {
-			'X-API-KEY': Bun.env.API_KEY,
+			'X-API-KEY': config.api.token,
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify(body),

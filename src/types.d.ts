@@ -23,21 +23,23 @@ export interface Event {
 	execute: (...args: any[]) => Promise<void>;
 }
 
+export interface Config {
+	bot_token: string;
+	application_id: string;
+	guild_id: string;
+	log: {
+		path: string;
+		colorize: boolean;
+	};
+	api: {
+		url: string;
+		token: string;
+	};
+}
+
 declare module 'discord.js' {
 	export interface Client {
 		commands: Collection<string, Command>;
 		logger: Logger;
-	}
-}
-
-declare module 'bun' {
-	export interface Env {
-		BOT_TOKEN: string;
-		APPLICATION_ID: string;
-		GUILD_ID: string;
-		API_URL: string;
-		API_KEY: string;
-		LOG_FILE: string;
-		COLORIZE: 'true' | 'false';
 	}
 }

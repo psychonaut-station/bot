@@ -1,0 +1,11 @@
+bot_token = ""
+application_id = ""
+guild_id = ""
+
+[log]
+path = "bot.json.log"
+colorize = true
+
+[api]
+url = "https://api.turkb.us/v2"
+token = ""

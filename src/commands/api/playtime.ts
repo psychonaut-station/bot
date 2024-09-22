@@ -9,8 +9,8 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
-import type { Command } from '../../types';
-import { get } from '../../utils';
+import type { Command } from '@/types';
+import { get } from '@/utils';
 
 interface JobPlaytime {
 	ckey: string;

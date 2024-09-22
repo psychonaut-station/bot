@@ -4,8 +4,8 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
-import type { Command } from '../../types';
-import { get, parseDate, timestamp } from '../../utils';
+import type { Command } from '@/types';
+import { get, parseDate, timestamp } from '@/utils';
 
 interface Player {
 	ckey: string;

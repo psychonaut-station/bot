@@ -2,15 +2,16 @@ import { once } from 'events';
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
-import { name } from '../../package.json';
+import config from '@/config';
+import { name } from '@/package';
 
 export async function createLogger() {
 	const prettyStream = pretty({
-		colorize: Bun.env.COLORIZE !== 'false',
+		colorize: config.log.colorize,
 		ignore: 'pid,hostname',
 	});
 
-	const fileStream = pino.destination(Bun.env.LOG_FILE);
+	const fileStream = pino.destination(config.log.path);
 
 	await once(fileStream, 'ready');
 

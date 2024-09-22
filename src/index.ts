@@ -1,6 +1,7 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
-import { createLogger, deployCommands } from './utils';
+import { botToken } from '@/config';
+import { createLogger, deployCommands } from '@/utils';
 
 const client = new Client({
 	intents: [
@@ -31,4 +32,4 @@ for (const Event of Object.values(await import('./events'))) {
 
 await deployCommands(client);
 
-client.login(Bun.env.BOT_TOKEN);
+client.login(botToken);

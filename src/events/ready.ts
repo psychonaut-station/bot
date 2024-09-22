@@ -1,6 +1,6 @@
 import { type Client, Events } from 'discord.js';
 
-import type { Event } from '../types';
+import type { Event } from '@/types';
 
 export class ReadyEvent implements Event {
 	public name = Events.ClientReady;
