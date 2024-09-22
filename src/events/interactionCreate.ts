@@ -5,6 +5,7 @@ import {
 	Events,
 } from 'discord.js';
 
+import logger from '@/logger';
 import type { Command, Event } from '@/types';
 import { get } from '@/utils';
 
@@ -18,7 +19,7 @@ export class InteractionCreateEvent implements Event {
 				await handleAutocomplete(interaction);
 			}
 		} catch (error) {
-			interaction.client.logger.error(error);
+			logger.error(error);
 		}
 	}
 }
@@ -29,16 +30,14 @@ async function handleChatInputCommand(
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		interaction.client.logger.error(
-			`No command matching ${interaction.commandName} was found.`
-		);
+		logger.error(`No command matching ${interaction.commandName} was found.`);
 		return;
 	}
 
 	try {
 		await command.execute(interaction);
 	} catch (error) {
-		interaction.client.logger.error(error);
+		logger.error(error);
 		try {
 			if (interaction.replied || interaction.deferred) {
 				interaction.followUp({
@@ -64,7 +63,7 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		interaction.client.logger.error(
+		logger.error(
 			`No autocomplete matching ${interaction.commandName} was found.`
 		);
 		return;
@@ -81,7 +80,7 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 
 		await command.autocomplete!(interaction);
 	} catch (error) {
-		interaction.client.logger.error(error);
+		logger.error(error);
 		try {
 			interaction.respond([]);
 		} catch {}

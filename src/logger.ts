@@ -5,7 +5,7 @@ import pretty from 'pino-pretty';
 import config from '@/config';
 import { name } from '@/package';
 
-export async function createLogger() {
+async function createLogger() {
 	const prettyStream = pretty({
 		colorize: config.log.colorize,
 		ignore: 'pid,hostname',
@@ -24,3 +24,7 @@ export async function createLogger() {
 
 	return logger;
 }
+
+const logger = await createLogger();
+
+export default logger;

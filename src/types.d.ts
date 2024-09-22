@@ -5,7 +5,6 @@ import type {
 	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
-import type { Logger } from 'pino';
 
 export interface Command {
 	builder:
@@ -30,6 +29,7 @@ export interface Config {
 	log: {
 		path: string;
 		colorize: boolean;
+		verify_channel: string;
 	};
 	api: {
 		url: string;
@@ -40,6 +40,5 @@ export interface Config {
 declare module 'discord.js' {
 	export interface Client {
 		commands: Collection<string, Command>;
-		logger: Logger;
 	}
 }

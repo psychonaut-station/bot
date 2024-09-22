@@ -1,12 +1,27 @@
 import {
 	type ChatInputCommandInteraction,
+	type Client,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	type TextChannel,
 } from 'discord.js';
 
+import config from '@/config';
 import { verifyRegex } from '@/constants';
+import logger from '@/logger';
 import type { Command } from '@/types';
 import { post } from '@/utils';
+
+const logVerify = async (client: Client, message: string) => {
+	const verifyLogChannel = (await client.channels.fetch(
+		config.log.verifyChannel
+	)) as TextChannel;
+
+	verifyLogChannel.send({
+		content: message,
+		allowedMentions: { parse: [] },
+	});
+};
 
 export class VerifyCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -28,7 +43,7 @@ export class VerifyCommand implements Command {
 		});
 
 		if (statusCode === 200) {
-			interaction.client.logger.info(
+			logger.info(
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
 
@@ -36,6 +51,11 @@ export class VerifyCommand implements Command {
 				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
 				ephemeral: true,
 			});
+
+			logVerify(
+				interaction.client,
+				`${user} hesabını \`${ckey}\` adlı BYOND hesabına bağladı.`
+			);
 		} else if (statusCode === 404) {
 			if (!verifyRegex.test(code)) {
 				interaction.reply({
@@ -107,12 +127,17 @@ export class UnverifyCommand implements Command {
 				});
 
 				if (statusCode === 200) {
-					interaction.client.logger.info(
+					logger.info(
 						`Unverified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
 					interaction.reply(
 						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
+					);
+
+					logVerify(
+						interaction.client,
+						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
 				} else if (statusCode === 409) {
 					interaction.reply('Hesap zaten bağlı değil.');
@@ -131,12 +156,17 @@ export class UnverifyCommand implements Command {
 					const userId = discordId.slice(1);
 					const user = await interaction.client.users.fetch(userId);
 
-					interaction.client.logger.info(
+					logger.info(
 						`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
 					interaction.reply(
 						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
+					);
+
+					logVerify(
+						interaction.client,
+						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
 				} else if (statusCode === 404) {
 					interaction.reply('Hesap bulunamadı.');
@@ -178,12 +208,17 @@ export class ForceVerifyCommand implements Command {
 		});
 
 		if (statusCode === 200) {
-			interaction.client.logger.info(
+			logger.info(
 				`Force-verified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 			);
 
 			interaction.reply(
 				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
+			);
+
+			logVerify(
+				interaction.client,
+				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`
 			);
 		} else if (statusCode === 404) {
 			interaction.reply('Oyuncu bulunamadı.');

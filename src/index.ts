@@ -1,7 +1,7 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
 import { botToken } from '@/config';
-import { createLogger, deployCommands } from '@/utils';
+import { deployCommands } from '@/utils';
 
 const client = new Client({
 	intents: [
@@ -11,8 +11,6 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 	],
 });
-
-client.logger = await createLogger();
 
 client.commands = new Collection();
 
