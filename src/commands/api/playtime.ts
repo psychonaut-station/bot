@@ -152,7 +152,7 @@ async function handlePlaytimePlayerReply(
 	interaction: ChatInputCommandInteraction
 ) {
 	if (player.length === 0) {
-		interaction.reply('Oyuncu daha önce hiçbir meslek oynamamış.');
+		await interaction.reply('Oyuncu daha önce hiçbir meslek oynamamış.');
 		return;
 	}
 
@@ -230,7 +230,7 @@ async function handlePlaytimePlayerReply(
 			next.setDisabled(true);
 			previous.setDisabled(true);
 
-			interaction.editReply({
+			await interaction.editReply({
 				content,
 				components: [row],
 			});

@@ -1,6 +1,7 @@
 import type {
 	ChatInputCommandInteraction,
 	Collection,
+	ModalSubmitInteraction,
 	SlashCommandBuilder,
 	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder,
@@ -22,19 +23,14 @@ export interface Event {
 	execute: (...args: any[]) => Promise<void>;
 }
 
-export interface Config {
-	bot_token: string;
-	application_id: string;
-	guild_id: string;
-	log: {
-		path: string;
-		colorize: boolean;
-		verify_channel: string;
-	};
-	api: {
-		url: string;
-		token: string;
-	};
+export interface PermanentButtonInteraction {
+	customId: string;
+	execute: (interaction: ButtonInteraction) => Promise<void>;
+}
+
+export interface ModalInteraction {
+	customId: string;
+	execute: (interaction: ModalSubmitInteraction) => Promise<void>;
 }
 
 declare module 'discord.js' {

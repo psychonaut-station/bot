@@ -1,27 +1,13 @@
 import {
 	type ChatInputCommandInteraction,
-	type Client,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	type TextChannel,
 } from 'discord.js';
 
-import config from '@/config';
 import { verifyRegex } from '@/constants';
 import logger from '@/logger';
 import type { Command } from '@/types';
 import { post } from '@/utils';
-
-const logVerify = async (client: Client, message: string) => {
-	const verifyLogChannel = (await client.channels.fetch(
-		config.log.verifyChannel
-	)) as TextChannel;
-
-	verifyLogChannel.send({
-		content: message,
-		allowedMentions: { parse: [] },
-	});
-};
 
 export class VerifyCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -52,7 +38,8 @@ export class VerifyCommand implements Command {
 				ephemeral: true,
 			});
 
-			logVerify(
+			logger.channel(
+				'verify',
 				interaction.client,
 				`${user} hesabını \`${ckey}\` adlı BYOND hesabına bağladı.`
 			);
@@ -135,7 +122,8 @@ export class UnverifyCommand implements Command {
 						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
 					);
 
-					logVerify(
+					logger.channel(
+						'verify',
 						interaction.client,
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
@@ -164,7 +152,8 @@ export class UnverifyCommand implements Command {
 						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
 					);
 
-					logVerify(
+					logger.channel(
+						'verify',
 						interaction.client,
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
@@ -216,7 +205,8 @@ export class ForceVerifyCommand implements Command {
 				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
 			);
 
-			logVerify(
+			logger.channel(
+				'verify',
 				interaction.client,
 				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`
 			);

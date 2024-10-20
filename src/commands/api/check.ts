@@ -40,13 +40,11 @@ export class CheckCommand implements Command {
 		if (statusCode === 200) {
 			const server = servers[0];
 
-			const connect = new ButtonBuilder()
-				.setLabel('Bağlan')
-				.setStyle(ButtonStyle.Link)
-				.setURL(CONNECT_URL);
-
 			const row = new ActionRowBuilder<MessageActionRow>().addComponents(
-				connect
+				new ButtonBuilder()
+					.setLabel('Bağlan')
+					.setStyle(ButtonStyle.Link)
+					.setURL(CONNECT_URL)
 			);
 
 			if (server.server_status === 1) {

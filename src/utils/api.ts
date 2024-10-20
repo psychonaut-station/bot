@@ -1,6 +1,6 @@
 import { request } from 'undici';
 
-import config from '@/config';
+import config from '@/configuration';
 
 type Response<T> =
 	| { statusCode: 200; body: T }

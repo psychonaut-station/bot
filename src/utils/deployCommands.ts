@@ -1,6 +1,6 @@
 import { type Client, REST, Routes } from 'discord.js';
 
-import { applicationId, botToken, guildId } from '@/config';
+import { applicationId, botToken, guildId } from '@/configuration';
 
 export async function deployCommands(client: Client) {
 	const rest = new REST().setToken(botToken);

@@ -6,7 +6,12 @@ guild_id = ""
 path = "bot.json.log"
 colorize = true
 verify_channel = ""
+submissions_channel = ""
 
 [api]
 url = "https://api.turkb.us/v2"
 token = ""
+
+[submission]
+questions = []
+role = ""

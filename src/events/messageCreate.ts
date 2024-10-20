@@ -1,6 +1,6 @@
 import { Events, type Message } from 'discord.js';
 
-import { guildId } from '@/config';
+import { guildId } from '@/configuration';
 import { verifyRegex } from '@/constants';
 import type { Event } from '@/types';
 
@@ -14,7 +14,7 @@ export class MessageCreateEvent implements Event {
 					await message.reply(
 						'Hesabını doğrulamak için /verify yazdıkdan sonra çıkan komutu kullanman gerek, ayrıca doğrulama kodunu bir başkası ile paylaşmamalısın.'
 					);
-					message.delete();
+					await message.delete();
 				} catch {}
 			}
 		}

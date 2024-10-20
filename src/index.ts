@@ -1,7 +1,15 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
-import { botToken } from '@/config';
+import { botToken } from '@/configuration';
 import { deployCommands } from '@/utils';
+
+process.on('unhandledRejection', (reason, promise) => {
+	console.error('Unhandled rejection:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtExceptionMonitor', (error, origin) => {
+	console.error('Unhandled exception:', error, error.stack, 'origin:', origin);
+});
 
 const client = new Client({
 	intents: [

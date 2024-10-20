@@ -176,3 +176,5 @@ dist
 .DS_Store
 
 config.toml
+
+test.ts
