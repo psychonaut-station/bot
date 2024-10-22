@@ -35,6 +35,8 @@ export class CheckCommand implements Command {
 		.setName('check')
 		.setDescription('Round durumunu gösterir.');
 	public async execute(interaction: ChatInputCommandInteraction) {
+		await interaction.deferReply();
+
 		const { statusCode, body: servers } = await get<Status[]>('server');
 
 		if (statusCode === 200) {
@@ -57,12 +59,12 @@ export class CheckCommand implements Command {
 							? 'devam etmekte'
 							: 'bitmek üzere';
 
-				interaction.reply({
+				await interaction.editReply({
 					content: `Round #${server.round_id}: ${server.players} oyuncu ile ${server.map} haritasında ${gameState}.`,
 					components: [row],
 				});
 			} else {
-				interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
+				await interaction.editReply('Sunucu kapalı veya yeni round başlıyor.');
 			}
 		}
 	}

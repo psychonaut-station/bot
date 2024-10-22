@@ -58,6 +58,8 @@ export class PlaytimeCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'top': {
+				await interaction.deferReply();
+
 				const job = interaction.options.getString('job', true);
 
 				const { body: top } = await get<JobPlaytime[]>(
@@ -76,11 +78,15 @@ export class PlaytimeCommand implements Command {
 					return `${entry.ckey}: ${hoursString} saat`;
 				};
 
-				interaction.reply(`**${job}**\n` + top!.map(formatEntry).join('\n'));
+				await interaction.editReply(
+					`**${job}**\n` + top!.map(formatEntry).join('\n')
+				);
 
 				break;
 			}
 			case 'player': {
+				await interaction.deferReply();
+
 				const ckey = interaction.options.getString('ckey', true);
 
 				const { statusCode, body: player } = await get<PlayerPlaytime[]>(
@@ -90,7 +96,7 @@ export class PlaytimeCommand implements Command {
 				if (statusCode === 200) {
 					handlePlaytimePlayerReply(ckey, player, interaction);
 				} else if (statusCode === 404) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.editReply('Oyuncu bulunamadı.');
 				}
 
 				break;
@@ -120,6 +126,8 @@ export class ViewPlaytimeCommand implements Command {
 		.setName('view-playtime')
 		.setDescription('Hangi mesleğe ne kadar süre harcadığını gösterir.');
 	public async execute(interaction: ChatInputCommandInteraction) {
+		await interaction.deferReply();
+
 		const { statusCode, body: ckey } = await get<string>(
 			`player/discord/?discord_id=${interaction.user.id}`
 		);
@@ -133,11 +141,11 @@ export class ViewPlaytimeCommand implements Command {
 				handlePlaytimePlayerReply(ckey, player, interaction);
 			} else if (statusCode === 404) {
 				// unreachable
-				interaction.reply('Oyuncu bulunamadı.');
+				await interaction.editReply('Oyuncu bulunamadı.');
 			}
 		} else if (statusCode === 409) {
-			await interaction.reply('Discord hesabın bağlı değil.');
-			interaction.followUp({
+			await interaction.editReply('Discord hesabın bağlı değil.');
+			await interaction.followUp({
 				content:
 					"Hesabını bağlamak için oyun içerisinden `OOC` sekmesindeki `Verify Discord Account`'u kullan.",
 				ephemeral: true,
@@ -152,7 +160,7 @@ async function handlePlaytimePlayerReply(
 	interaction: ChatInputCommandInteraction
 ) {
 	if (player.length === 0) {
-		interaction.reply('Oyuncu daha önce hiçbir meslek oynamamış.');
+		await interaction.editReply('Oyuncu daha önce hiçbir meslek oynamamış.');
 		return;
 	}
 
@@ -196,9 +204,9 @@ async function handlePlaytimePlayerReply(
 
 	updateReply();
 
-	let response = await interaction.reply({
+	let response = await interaction.editReply({
 		content,
-		fetchReply: true,
+		// fetchReply: true,
 		components: [row],
 	});
 
@@ -230,7 +238,7 @@ async function handlePlaytimePlayerReply(
 			next.setDisabled(true);
 			previous.setDisabled(true);
 
-			interaction.editReply({
+			await interaction.editReply({
 				content,
 				components: [row],
 			});

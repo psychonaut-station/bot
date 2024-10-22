@@ -59,6 +59,8 @@ export class WhoCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'ckey': {
+				await interaction.deferReply();
+
 				const ckey = interaction.options.getString('ckey', true);
 
 				const { statusCode, body: user } = await get<User>(
@@ -66,16 +68,20 @@ export class WhoCommand implements Command {
 				);
 
 				if (statusCode === 200) {
-					interaction.reply(`Oyuncunun Discord hesabı: <@${user.id}>`);
+					await interaction.editReply(
+						`Oyuncunun Discord hesabı: <@${user.id}>`
+					);
 				} else if (statusCode === 404) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.editReply('Oyuncu bulunamadı.');
 				} else if (statusCode === 409) {
-					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
+					await interaction.editReply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
 			}
 			case 'user': {
+				await interaction.deferReply();
+
 				const user = interaction.options.getUser('user', true);
 
 				const { statusCode, body: ckey } = await get<string>(
@@ -83,14 +89,16 @@ export class WhoCommand implements Command {
 				);
 
 				if (statusCode === 200) {
-					interaction.reply(`Oyuncunun ckeyi: \`${ckey}\``);
+					await interaction.editReply(`Oyuncunun ckeyi: \`${ckey}\``);
 				} else if (statusCode === 409) {
-					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
+					await interaction.editReply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
 			}
 			case 'character': {
+				await interaction.deferReply();
+
 				let icName = interaction.options.getString('character', true);
 				let exactMatch = false;
 
@@ -110,14 +118,14 @@ export class WhoCommand implements Command {
 				}
 
 				if (filteredNames.length === 0) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.editReply('Oyuncu bulunamadı.');
 					return;
 				}
 
 				const formatEntry = (entry: { name: string; ckey: string }) =>
 					`${entry.name} - \`${entry.ckey}\``;
 
-				interaction.reply(filteredNames.map(formatEntry).join('\n'));
+				await interaction.editReply(filteredNames.map(formatEntry).join('\n'));
 
 				break;
 			}

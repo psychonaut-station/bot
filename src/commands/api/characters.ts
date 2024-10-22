@@ -22,21 +22,25 @@ export class CharactersCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		const ckey = interaction.options.getString('ckey', true);
 
+		await interaction.deferReply();
+
 		const { statusCode, body: characters } = await get<[string, number][]>(
 			`player/characters?ckey=${ckey}`
 		);
 
 		if (statusCode === 200) {
 			if (characters.length === 0) {
-				interaction.reply('Oyuncu daha önce bir karakter ile hiç oynamamış.');
+				await interaction.editReply(
+					'Oyuncu daha önce bir karakter ile hiç oynamamış.'
+				);
 				return;
 			}
 
-			interaction.reply(
+			await interaction.editReply(
 				`${characters.map(([character]) => `\`\`${character}\`\``).join(', ')}`
 			);
 		} else if (statusCode === 404) {
-			interaction.reply('Oyuncu bulunamadı.');
+			await interaction.editReply('Oyuncu bulunamadı.');
 		}
 	}
 }

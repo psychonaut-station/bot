@@ -19,7 +19,7 @@ export class InteractionCreateEvent implements Event {
 				await handleAutocomplete(interaction);
 			}
 		} catch (error) {
-			logger.error(error);
+			logger.error(`There was an error while handling InteractionCreateEvent event.`, error);
 		}
 	}
 }
@@ -37,15 +37,19 @@ async function handleChatInputCommand(
 	try {
 		await command.execute(interaction);
 	} catch (error) {
-		logger.error(error);
+		logger.error(`There was an error while executing ${interaction.commandName} command.`, error);
 		try {
-			if (interaction.replied || interaction.deferred) {
-				interaction.followUp({
+			if (interaction.deferred) {
+				await interaction.editReply(
+					'There was an error while executing this command!'
+				);
+			} else if (interaction.replied) {
+				await interaction.followUp({
 					content: 'There was an error while executing this command!',
 					ephemeral: true,
 				});
 			} else {
-				interaction.reply({
+				await interaction.reply({
 					content: 'There was an error while executing this command!',
 					ephemeral: true,
 				});
@@ -80,7 +84,7 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 
 		await command.autocomplete!(interaction);
 	} catch (error) {
-		logger.error(error);
+		logger.error(`There was an error while responding to ${interaction.commandName} autocomplete.`, error);
 		try {
 			interaction.respond([]);
 		} catch {}

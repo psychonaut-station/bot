@@ -34,6 +34,8 @@ export class VerifyCommand implements Command {
 				.setRequired(true)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
+		await interaction.deferReply({ ephemeral: true });
+
 		const user = interaction.user;
 		const code = interaction.options.getString('code', true);
 
@@ -47,10 +49,9 @@ export class VerifyCommand implements Command {
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
 
-			interaction.reply({
-				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
-				ephemeral: true,
-			});
+			await interaction.editReply(
+				`Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`
+			);
 
 			logVerify(
 				interaction.client,
@@ -58,28 +59,24 @@ export class VerifyCommand implements Command {
 			);
 		} else if (statusCode === 404) {
 			if (!verifyRegex.test(code)) {
-				interaction.reply({
-					content:
-						'Kod şekille uyuşmuyor, lütfen kodu şekle uygun girin.\nÖrneğin: `/verify 123-456`',
-					ephemeral: true,
-				});
+				await interaction.editReply(
+					'Kod şekille uyuşmuyor, lütfen kodu şekle uygun girin.\nÖrneğin: `/verify 123-456`'
+				);
 				return;
 			}
 
-			interaction.reply({ content: 'Kod geçersiz.', ephemeral: true });
+			await interaction.editReply('Kod geçersiz.');
 		} else if (statusCode === 409) {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
-				interaction.reply({
-					content: `Bu kod <${conflict}> adlı Discord hesabına bağlı.`,
-					ephemeral: true,
-				});
+				await interaction.editReply(
+					`Bu kod <${conflict}> adlı Discord hesabına bağlı.`
+				);
 			} else {
-				interaction.reply({
-					content: `Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`,
-					ephemeral: true,
-				});
+				await interaction.editReply(
+					`Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`
+				);
 			}
 		}
 	}
@@ -120,6 +117,8 @@ export class UnverifyCommand implements Command {
 	public async execute(interaction: ChatInputCommandInteraction) {
 		switch (interaction.options.getSubcommand()) {
 			case 'user': {
+				await interaction.deferReply();
+
 				const user = interaction.options.getUser('user', true);
 
 				const { statusCode, body: ckey } = await post<string>('unverify', {
@@ -131,7 +130,7 @@ export class UnverifyCommand implements Command {
 						`Unverified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
-					interaction.reply(
+					await interaction.editReply(
 						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
 					);
 
@@ -140,12 +139,14 @@ export class UnverifyCommand implements Command {
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
 				} else if (statusCode === 409) {
-					interaction.reply('Hesap zaten bağlı değil.');
+					await interaction.editReply('Hesap zaten bağlı değil.');
 				}
 
 				break;
 			}
 			case 'ckey': {
+				await interaction.deferReply();
+
 				const ckey = interaction.options.getString('ckey', true);
 
 				const { statusCode, body: discordId } = await post<string>('unverify', {
@@ -160,7 +161,7 @@ export class UnverifyCommand implements Command {
 						`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
-					interaction.reply(
+					await interaction.editReply(
 						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
 					);
 
@@ -169,9 +170,9 @@ export class UnverifyCommand implements Command {
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
 				} else if (statusCode === 404) {
-					interaction.reply('Hesap bulunamadı.');
+					await interaction.editReply('Hesap bulunamadı.');
 				} else if (statusCode === 409) {
-					interaction.reply('Hesap zaten bağlı değil.');
+					await interaction.editReply('Hesap zaten bağlı değil.');
 				}
 
 				break;
@@ -199,6 +200,8 @@ export class ForceVerifyCommand implements Command {
 				.setAutocomplete(true)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
+		await interaction.deferReply();
+
 		const user = interaction.options.getUser('user', true);
 		const ckey = interaction.options.getString('ckey', true).toLowerCase();
 
@@ -212,7 +215,7 @@ export class ForceVerifyCommand implements Command {
 				`Force-verified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 			);
 
-			interaction.reply(
+			await interaction.editReply(
 				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
 			);
 
@@ -221,16 +224,16 @@ export class ForceVerifyCommand implements Command {
 				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`
 			);
 		} else if (statusCode === 404) {
-			interaction.reply('Oyuncu bulunamadı.');
+			await interaction.editReply('Oyuncu bulunamadı.');
 		} else if (statusCode === 409) {
 			const conflict = body as any as string;
 
 			if (conflict.startsWith('@')) {
-				interaction.reply(
+				await interaction.editReply(
 					`Bu ckey zaten <${conflict}> adlı Discord hesabına bağlı!`
 				);
 			} else {
-				interaction.reply(
+				await interaction.editReply(
 					`Bu Discord hesabı zaten \`${conflict}\` adlı BYOND hesabına bağlı!`
 				);
 			}

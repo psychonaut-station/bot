@@ -87,6 +87,8 @@ export class PlayerCommand implements Command {
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
 
+				await interaction.deferReply({ ephemeral });
+
 				const { statusCode, body: player } = await get<Player>(
 					`player/?ckey=${ckey}`
 				);
@@ -98,15 +100,11 @@ export class PlayerCommand implements Command {
 						? timestamp(parseDate(player.byond_age), 'R')
 						: 'bilinmiyor';
 
-					interaction.reply({
-						content: `Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`,
-						ephemeral,
-					});
+					await interaction.editReply(
+						`Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`
+					);
 				} else if (statusCode === 404) {
-					interaction.reply({
-						content: 'Oyuncu bulunamadı.',
-						ephemeral,
-					});
+					await interaction.editReply('Oyuncu bulunamadı.');
 				}
 
 				break;
@@ -116,16 +114,17 @@ export class PlayerCommand implements Command {
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
 
+				await interaction.deferReply({ ephemeral });
+
 				const { statusCode, body: bans } = await get<Ban[]>(
 					`player/ban/?ckey=${ckey}`
 				);
 
 				if (statusCode === 200) {
 					if (bans.length === 0) {
-						interaction.reply({
-							content: 'Oyuncunun ban geçmişi bulunmamaktadır.',
-							ephemeral,
-						});
+						await interaction.editReply(
+							'Oyuncunun ban geçmişi bulunmamaktadır.'
+						);
 						return;
 					}
 
@@ -138,10 +137,9 @@ export class PlayerCommand implements Command {
 					);
 
 					if (activeBans.length === 0) {
-						interaction.reply({
-							content: 'Oyuncunun aktif banı bulunmamaktadır.',
-							ephemeral,
-						});
+						await interaction.editReply(
+							'Oyuncunun aktif banı bulunmamaktadır.'
+						);
 						return;
 					}
 
@@ -159,10 +157,7 @@ export class PlayerCommand implements Command {
 						return `Ckey: ${ban.ckey}\nBan Tarihi: ${bantime}\nRound ID: ${roundId}\nRoller: ${roles}\nBitiş Tarihi: ${expirationTime}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDüzenlemeler: ${edits}`;
 					};
 
-					await interaction.reply({
-						content: formatBan(sortedBans.shift()!),
-						ephemeral,
-					});
+					await interaction.editReply(formatBan(sortedBans.shift()!));
 
 					for (const ban of sortedBans) {
 						await interaction.followUp({
@@ -171,10 +166,7 @@ export class PlayerCommand implements Command {
 						});
 					}
 				} else if (statusCode === 404) {
-					interaction.reply({
-						content: 'Oyuncu bulunamadı.',
-						ephemeral,
-					});
+					await interaction.editReply('Oyuncu bulunamadı.');
 				}
 
 				break;
