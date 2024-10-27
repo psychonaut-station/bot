@@ -55,12 +55,12 @@ export class CheckCommand implements Command {
 							? 'devam etmekte'
 							: 'bitmek üzere';
 
-				interaction.reply({
+				await interaction.reply({
 					content: `Round #${server.round_id}: ${server.players} oyuncu ile ${server.map} haritasında ${gameState}.`,
 					components: [row],
 				});
 			} else {
-				interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
+				await interaction.reply('Sunucu kapalı veya yeni round başlıyor.');
 			}
 		}
 	}

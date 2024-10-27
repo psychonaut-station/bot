@@ -28,15 +28,17 @@ export class CharactersCommand implements Command {
 
 		if (statusCode === 200) {
 			if (characters.length === 0) {
-				interaction.reply('Oyuncu daha önce bir karakter ile hiç oynamamış.');
+				await interaction.reply(
+					'Oyuncu daha önce bir karakter ile hiç oynamamış.'
+				);
 				return;
 			}
 
-			interaction.reply(
+			await interaction.reply(
 				`${characters.map(([character]) => `\`\`${character}\`\``).join(', ')}`
 			);
 		} else if (statusCode === 404) {
-			interaction.reply('Oyuncu bulunamadı.');
+			await interaction.reply('Oyuncu bulunamadı.');
 		}
 	}
 }

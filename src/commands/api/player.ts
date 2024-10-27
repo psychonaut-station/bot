@@ -98,12 +98,12 @@ export class PlayerCommand implements Command {
 						? timestamp(parseDate(player.byond_age), 'R')
 						: 'bilinmiyor';
 
-					interaction.reply({
+					await interaction.reply({
 						content: `Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`,
 						ephemeral,
 					});
 				} else if (statusCode === 404) {
-					interaction.reply({
+					await interaction.reply({
 						content: 'Oyuncu bulunamadı.',
 						ephemeral,
 					});
@@ -122,7 +122,7 @@ export class PlayerCommand implements Command {
 
 				if (statusCode === 200) {
 					if (bans.length === 0) {
-						interaction.reply({
+						await interaction.reply({
 							content: 'Oyuncunun ban geçmişi bulunmamaktadır.',
 							ephemeral,
 						});
@@ -138,7 +138,7 @@ export class PlayerCommand implements Command {
 					);
 
 					if (activeBans.length === 0) {
-						interaction.reply({
+						await interaction.reply({
 							content: 'Oyuncunun aktif banı bulunmamaktadır.',
 							ephemeral,
 						});
@@ -171,7 +171,7 @@ export class PlayerCommand implements Command {
 						});
 					}
 				} else if (statusCode === 404) {
-					interaction.reply({
+					await interaction.reply({
 						content: 'Oyuncu bulunamadı.',
 						ephemeral,
 					});

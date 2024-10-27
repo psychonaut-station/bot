@@ -10,6 +10,6 @@ export class PingCommand implements Command {
 		.setName('ping')
 		.setDescription('Replies with Pong!');
 	public async execute(interaction: ChatInputCommandInteraction) {
-		interaction.reply('Pong!');
+		await interaction.reply('Pong!');
 	}
 }

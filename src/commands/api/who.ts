@@ -66,11 +66,11 @@ export class WhoCommand implements Command {
 				);
 
 				if (statusCode === 200) {
-					interaction.reply(`Oyuncunun Discord hesabı: <@${user.id}>`);
+					await interaction.reply(`Oyuncunun Discord hesabı: <@${user.id}>`);
 				} else if (statusCode === 404) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.reply('Oyuncu bulunamadı.');
 				} else if (statusCode === 409) {
-					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
+					await interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
@@ -83,9 +83,9 @@ export class WhoCommand implements Command {
 				);
 
 				if (statusCode === 200) {
-					interaction.reply(`Oyuncunun ckeyi: \`${ckey}\``);
+					await interaction.reply(`Oyuncunun ckeyi: \`${ckey}\``);
 				} else if (statusCode === 409) {
-					interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
+					await interaction.reply('Oyuncunun Discord hesabı bağlı değil.');
 				}
 
 				break;
@@ -110,14 +110,14 @@ export class WhoCommand implements Command {
 				}
 
 				if (filteredNames.length === 0) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.reply('Oyuncu bulunamadı.');
 					return;
 				}
 
 				const formatEntry = (entry: { name: string; ckey: string }) =>
 					`${entry.name} - \`${entry.ckey}\``;
 
-				interaction.reply(filteredNames.map(formatEntry).join('\n'));
+				await interaction.reply(filteredNames.map(formatEntry).join('\n'));
 
 				break;
 			}
@@ -132,14 +132,14 @@ export class WhoCommand implements Command {
 			);
 
 			if (body!.length === 0) {
-				interaction.respond([]);
+				await interaction.respond([]);
 				return;
 			}
 
 			const names = body!.map(({ name }) => name);
 			const uniqueNames = [...new Set(names)];
 
-			interaction.respond(
+			await interaction.respond(
 				uniqueNames.map((name) => ({ name, value: `${name}\u00ad` }))
 			);
 		}

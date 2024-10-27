@@ -65,7 +65,7 @@ export class PlaytimeCommand implements Command {
 				);
 
 				if (top!.length === 0) {
-					interaction.editReply('Meslek bulunamadı.');
+					await interaction.reply('Meslek bulunamadı.');
 					return;
 				}
 
@@ -76,7 +76,9 @@ export class PlaytimeCommand implements Command {
 					return `${entry.ckey}: ${hoursString} saat`;
 				};
 
-				interaction.reply(`**${job}**\n` + top!.map(formatEntry).join('\n'));
+				await interaction.reply(
+					`**${job}**\n` + top!.map(formatEntry).join('\n')
+				);
 
 				break;
 			}
@@ -88,9 +90,9 @@ export class PlaytimeCommand implements Command {
 				);
 
 				if (statusCode === 200) {
-					handlePlaytimePlayerReply(ckey, player, interaction);
+					await handlePlaytimePlayerReply(ckey, player, interaction);
 				} else if (statusCode === 404) {
-					interaction.reply('Oyuncu bulunamadı.');
+					await interaction.reply('Oyuncu bulunamadı.');
 				}
 
 				break;
@@ -106,11 +108,13 @@ export class PlaytimeCommand implements Command {
 			);
 
 			if (jobs!.length === 0) {
-				interaction.respond([]);
+				await interaction.respond([]);
 				return;
 			}
 
-			interaction.respond(jobs!.map((job) => ({ name: job, value: job })));
+			await interaction.respond(
+				jobs!.map((job) => ({ name: job, value: job }))
+			);
 		}
 	}
 }
@@ -130,14 +134,14 @@ export class ViewPlaytimeCommand implements Command {
 			);
 
 			if (statusCode === 200) {
-				handlePlaytimePlayerReply(ckey, player, interaction);
+				await handlePlaytimePlayerReply(ckey, player, interaction);
 			} else if (statusCode === 404) {
 				// unreachable
-				interaction.reply('Oyuncu bulunamadı.');
+				await interaction.reply('Oyuncu bulunamadı.');
 			}
 		} else if (statusCode === 409) {
 			await interaction.reply('Discord hesabın bağlı değil.');
-			interaction.followUp({
+			await interaction.followUp({
 				content:
 					"Hesabını bağlamak için oyun içerisinden `OOC` sekmesindeki `Verify Discord Account`'u kullan.",
 				ephemeral: true,

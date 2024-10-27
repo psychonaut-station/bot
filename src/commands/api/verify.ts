@@ -33,19 +33,19 @@ export class VerifyCommand implements Command {
 				`Verified user [${user.tag}](${user.id}) with ckey \`${ckey}\``
 			);
 
-			interaction.reply({
-				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
-				ephemeral: true,
-			});
-
 			logger.channel(
 				'verify',
 				interaction.client,
 				`${user} hesabını \`${ckey}\` adlı BYOND hesabına bağladı.`
 			);
+
+			await interaction.reply({
+				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
+				ephemeral: true,
+			});
 		} else if (statusCode === 404) {
 			if (!verifyRegex.test(code)) {
-				interaction.reply({
+				await interaction.reply({
 					content:
 						'Kod şekille uyuşmuyor, lütfen kodu şekle uygun girin.\nÖrneğin: `/verify 123-456`',
 					ephemeral: true,
@@ -58,12 +58,12 @@ export class VerifyCommand implements Command {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
-				interaction.reply({
+				await interaction.reply({
 					content: `Bu kod <${conflict}> adlı Discord hesabına bağlı.`,
 					ephemeral: true,
 				});
 			} else {
-				interaction.reply({
+				await interaction.reply({
 					content: `Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`,
 					ephemeral: true,
 				});
@@ -118,17 +118,17 @@ export class UnverifyCommand implements Command {
 						`Unverified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
-					interaction.reply(
-						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
-					);
-
 					logger.channel(
 						'verify',
 						interaction.client,
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
+
+					await interaction.reply(
+						`<@${user.id}> adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı kaldırıldı.`
+					);
 				} else if (statusCode === 409) {
-					interaction.reply('Hesap zaten bağlı değil.');
+					await interaction.reply('Hesap zaten bağlı değil.');
 				}
 
 				break;
@@ -148,19 +148,19 @@ export class UnverifyCommand implements Command {
 						`Unverified user [${user.tag}](${userId}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 					);
 
-					interaction.reply(
-						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
-					);
-
 					logger.channel(
 						'verify',
 						interaction.client,
 						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
 					);
+
+					await interaction.reply(
+						`\`${ckey}\` adlı BYOND hesabı ile <${discordId}> adlı Discord hesabının bağlantısı kaldırıldı.`
+					);
 				} else if (statusCode === 404) {
-					interaction.reply('Hesap bulunamadı.');
+					await interaction.reply('Hesap bulunamadı.');
 				} else if (statusCode === 409) {
-					interaction.reply('Hesap zaten bağlı değil.');
+					await interaction.reply('Hesap zaten bağlı değil.');
 				}
 
 				break;
@@ -201,26 +201,26 @@ export class ForceVerifyCommand implements Command {
 				`Force-verified user [${user.tag}](${user.id}) with ckey \`${ckey}\` by [${interaction.user.tag}](${interaction.user.id})`
 			);
 
-			interaction.reply(
-				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
-			);
-
 			logger.channel(
 				'verify',
 				interaction.client,
 				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`
 			);
+
+			await interaction.reply(
+				`<@${user.id}> adlı Discord hesabı \`${ckey}\` adlı BYOND hesabına bağlandı.`
+			);
 		} else if (statusCode === 404) {
-			interaction.reply('Oyuncu bulunamadı.');
+			await interaction.reply('Oyuncu bulunamadı.');
 		} else if (statusCode === 409) {
 			const conflict = body as any as string;
 
 			if (conflict.startsWith('@')) {
-				interaction.reply(
+				await interaction.reply(
 					`Bu ckey zaten <${conflict}> adlı Discord hesabına bağlı!`
 				);
 			} else {
-				interaction.reply(
+				await interaction.reply(
 					`Bu Discord hesabı zaten \`${conflict}\` adlı BYOND hesabına bağlı!`
 				);
 			}
