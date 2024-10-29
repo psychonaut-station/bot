@@ -14,7 +14,7 @@ export const customId = 'submissionApproveButton';
 export class ApproveSubmissionButton implements PermanentButtonInteraction {
 	public customId = customId;
 	public async execute(interaction: ButtonInteraction) {
-		if (!interaction.inGuild() || !interaction.channel) return;
+		if (!interaction.inGuild() || !interaction.channel?.isThread()) return;
 
 		const permissions = interaction.member.permissions as PermissionsBitField;
 
@@ -50,14 +50,20 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 			return;
 		}
 
+		await interaction.reply('Başvuru onaylandı.');
+
 		try {
 			await submitter.roles.add(configuration.submission.role);
 		} catch {
-			await interaction.reply({
-				content: 'Başvuru sahibine rol verilemedi.',
-				ephemeral: true,
-			});
+			await interaction.editReply('Başvuru sahibine rol verilemedi.');
 			return;
+		}
+
+		try {
+			await interaction.channel.setLocked(true);
+			await interaction.channel.setArchived(true);
+		} catch {
+			await interaction.followUp('Alt başlık arşivlenemedi.');
 		}
 
 		logger.info(
@@ -67,16 +73,7 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 		logger.channel(
 			'submission',
 			interaction.client,
-			`${submitter.user} hesabının başvurusu ${interaction.user} tarafından onaylandı.`
+			`${submitter.user} hesabının başvurusu ${interaction.user} tarafından onaylandı: ${interaction.channel}`
 		);
-
-		try {
-			await interaction.channel.delete();
-		} catch {
-			await interaction.reply({
-				content: 'Başvuru onaylandı fakat alt başlık silinemedi.',
-				ephemeral: true,
-			});
-		}
 	}
 }

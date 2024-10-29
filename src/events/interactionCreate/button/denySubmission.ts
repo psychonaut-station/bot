@@ -13,7 +13,7 @@ export const customId = 'submissionDenyButton';
 export class DenySubmissionButton implements PermanentButtonInteraction {
 	public customId = customId;
 	public async execute(interaction: ButtonInteraction) {
-		if (!interaction.inGuild() || !interaction.channel) return;
+		if (!interaction.inGuild() || !interaction.channel?.isThread()) return;
 
 		const permissions = interaction.member.permissions as PermissionsBitField;
 
@@ -26,12 +26,19 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 			messageContent.indexOf('>')
 		);
 
-		let submitter: User | null;
+		let submitter: User | null = null;
 
 		try {
 			submitter = await interaction.client.users.fetch(submitterId);
+		} catch {}
+
+		await interaction.reply('Başvuru reddedildi.');
+
+		try {
+			await interaction.channel.setLocked(true);
+			await interaction.channel.setArchived(true);
 		} catch {
-			submitter = null;
+			await interaction.followUp('Alt başlık arşivlenemedi.');
 		}
 
 		logger.info(
@@ -41,16 +48,7 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 		logger.channel(
 			'submission',
 			interaction.client,
-			`<@${submitterId}> hesabının başvurusu ${interaction.user} tarafından reddedildi.`
+			`<@${submitterId}> hesabının başvurusu ${interaction.user} tarafından reddedildi: ${interaction.channel}`
 		);
-
-		try {
-			await interaction.channel.delete();
-		} catch {
-			await interaction.reply({
-				content: 'Başvuru reddedildi fakat alt başlık silinemedi.',
-				ephemeral: true,
-			});
-		}
 	}
 }

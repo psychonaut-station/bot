@@ -5,7 +5,7 @@ import {
 	ChannelType,
 	type MessageActionRowComponentBuilder as MessageActionRow,
 	type ModalSubmitInteraction,
-	type TextChannel,
+	TextChannel,
 	ThreadAutoArchiveDuration,
 } from 'discord.js';
 
@@ -20,11 +20,9 @@ export const customId = 'createSubmissionModal';
 export class CreateSubmissionModal implements ModalInteraction {
 	public customId = customId;
 	public async execute(interaction: ModalSubmitInteraction) {
-		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+		if (!(interaction.channel instanceof TextChannel)) return;
 
-		const channel = interaction.channel as TextChannel;
-
-		const thread = await channel.threads.create({
+		const thread = await interaction.channel.threads.create({
 			name: `${interaction.user.username} #${interaction.user.id}`,
 			autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
 			type: ChannelType.PrivateThread,

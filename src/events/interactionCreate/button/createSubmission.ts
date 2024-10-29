@@ -3,7 +3,7 @@ import {
 	type ButtonInteraction,
 	type ModalActionRowComponentBuilder as ModalActionRow,
 	ModalBuilder,
-	type TextChannel,
+	TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
 } from 'discord.js';
@@ -17,13 +17,12 @@ export const customId = 'submissionCreateButton';
 export class CreateSubmissionButton implements PermanentButtonInteraction {
 	public customId = customId;
 	public async execute(interaction: ButtonInteraction) {
-		if (!interaction.channel || !interaction.channel.isTextBased()) return;
+		if (!(interaction.channel instanceof TextChannel)) return;
 
-		const channel = interaction.channel as TextChannel;
-		const channelThreads = await channel.threads.fetch();
+		const threadManager = await interaction.channel.threads.fetch();
 
-		const thread = channelThreads.threads.find((thread) =>
-			thread.name.endsWith(interaction.user.id)
+		const thread = threadManager.threads.find(
+			(thread) => thread.name.endsWith(interaction.user.id) && !thread.locked
 		);
 
 		if (thread) {
@@ -51,10 +50,6 @@ export class CreateSubmissionButton implements PermanentButtonInteraction {
 
 			return;
 		}
-
-		// note: there is a limit of max threads per guild (1000), it'ld better to
-		// check if it's reached but it's quite impossible to reach that limit
-		// so i'll ignore it for now.
 
 		const modal = new ModalBuilder()
 			.setCustomId(modalId)

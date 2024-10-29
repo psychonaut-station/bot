@@ -1,4 +1,4 @@
-import type { Client } from 'discord.js';
+import type { Client, MessageCreateOptions } from 'discord.js';
 import { once } from 'events';
 import pino from 'pino';
 import pretty from 'pino-pretty';
@@ -8,7 +8,12 @@ import { name } from '@/package';
 
 type Channel = 'verify' | 'submission';
 type ExtendedLogger = pino.Logger & {
-	channel: (channel: Channel, client: Client, message: string) => Promise<void>;
+	channel: (
+		channel: Channel,
+		client: Client,
+		message: string,
+		options?: MessageCreateOptions
+	) => Promise<void>;
 };
 
 const channels: Record<Channel, string> = {
@@ -36,7 +41,8 @@ async function createLogger() {
 	logger.channel = async (
 		channel: Channel,
 		client: Client,
-		message: string
+		message: string,
+		options?: MessageCreateOptions
 	) => {
 		try {
 			const textChannel = await client.channels.fetch(channels[channel]);
@@ -52,6 +58,7 @@ async function createLogger() {
 			await textChannel.send({
 				content: message,
 				allowedMentions: { parse: [] },
+				...options,
 			});
 		} catch (error) {
 			logger.error(
