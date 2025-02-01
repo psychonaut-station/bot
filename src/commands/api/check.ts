@@ -28,7 +28,7 @@ type Status =
 			server_status: 0;
 	  };
 
-const CONNECT_URL = 'https://turkb.us/connect';
+const CONNECT_URL = 'https://tr-1.ss13.org';
 
 export class CheckCommand implements Command {
 	public builder = new SlashCommandBuilder()
