@@ -23,7 +23,7 @@ interface Ban {
 	id: number;
 	bantime: string;
 	round_id: number | null;
-	role: string | null;
+	roles: string | null;
 	expiration_time: string | null;
 	reason: string;
 	ckey: string | null;
@@ -70,6 +70,18 @@ export class PlayerCommand implements Command {
 						.setRequired(true)
 						.setAutocomplete(true)
 				)
+				.addBooleanOption((option) =>
+					option
+						.setName('permanent')
+						.setDescription('Sadece kalıcı banları gösterir.')
+				)
+				.addStringOption((option) =>
+					option
+						.setName('since')
+						.setDescription(
+							'Belirli bir tarihten sonra olan banları gösterir. YYYY-MM-DD formatında olmalıdır.'
+						)
+				)
 				.addStringOption((option) =>
 					option
 						.setName('ephemeral')
@@ -113,17 +125,27 @@ export class PlayerCommand implements Command {
 			}
 			case 'ban': {
 				const ckey = interaction.options.getString('ckey', true);
+				const permanent = interaction.options.getBoolean('permanent');
+				const since = interaction.options.getString('since');
 				const ephemeral =
 					interaction.options.getString('ephemeral') !== 'false';
 
+				if (since && !/^\d{4}-\d{2}-\d{2}$/.test(since)) {
+					await interaction.reply({
+						content: 'Tarih formatı YYYY-MM-DD şeklinde olmalıdır.',
+						ephemeral,
+					});
+					return;
+				}
+
 				const { statusCode, body: bans } = await get<Ban[]>(
-					`player/ban/?ckey=${ckey}`
+					`player/ban/?ckey=${ckey}${permanent ? '&permanent=true' : ''}${since ? `&since=${since}%2023:59:59` : ''}`
 				);
 
 				if (statusCode === 200) {
 					if (bans.length === 0) {
 						await interaction.reply({
-							content: 'Oyuncunun ban geçmişi bulunmamaktadır.',
+							content: `Oyuncunun${since ? ` ${timestamp(parseDate(since), 'D')} tarihinden itibaren` : ''}${permanent ? ' kalıcı' : ''} ban geçmişi bulunmamaktadır.`,
 							ephemeral,
 						});
 						return;
@@ -139,32 +161,30 @@ export class PlayerCommand implements Command {
 
 					if (activeBans.length === 0) {
 						await interaction.reply({
-							content: 'Oyuncunun aktif banı bulunmamaktadır.',
+							content: `Oyuncunun${since ? ` ${timestamp(parseDate(since), 'D')} tarihinden itibaren` : ''} aktif${permanent ? ' kalıcı' : ''} banı bulunmamaktadır.`,
 							ephemeral,
 						});
 						return;
 					}
 
-					const sortedBans = sortBans(activeBans);
-
-					const formatBan = (ban: SortedBan) => {
-						const bantime = timestamp(ban.bantime, 'R');
+					const formatBan = (ban: Ban) => {
+						const bantime = timestamp(parseDate(ban.bantime), 'R');
 						const roundId = ban.round_id ?? 'yok';
-						const roles = ban.roles.join(', ') || 'yok';
+						const roles = ban.roles || 'yok';
 						const expirationTime = ban.expiration_time
-							? timestamp(ban.expiration_time, 'R')
+							? timestamp(parseDate(ban.expiration_time), 'R')
 							: 'kalıcı';
 						const edits = ban.edits ?? 'yok';
 
-						return `Ckey: ${ban.ckey}\nBan Tarihi: ${bantime}\nRound ID: ${roundId}\nRoller: ${roles}\nBitiş Tarihi: ${expirationTime}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.admin_ckey}\nDüzenlemeler: ${edits}`;
+						return `Ckey: ${ban.ckey}\nBan Tarihi: ${bantime}\nRound ID: ${roundId}\nRoller: ${roles}\nBitiş Tarihi: ${expirationTime}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.a_ckey}\nDüzenlemeler: ${edits}`;
 					};
 
 					await interaction.reply({
-						content: formatBan(sortedBans.shift()!),
+						content: formatBan(activeBans.shift()!),
 						ephemeral,
 					});
 
-					for (const ban of sortedBans) {
+					for (const ban of activeBans) {
 						await interaction.followUp({
 							content: formatBan(ban),
 							ephemeral,
@@ -181,50 +201,4 @@ export class PlayerCommand implements Command {
 			}
 		}
 	}
-}
-
-interface SortedBan {
-	ckey: string | null;
-	bantime: Date;
-	round_id: number | null;
-	roles: string[];
-	expiration_time: Date | null;
-	reason: string;
-	admin_ckey: string;
-	edits: string | null;
-}
-
-function sortBans(bans: Ban[]) {
-	const sortedBans = new Map<string, SortedBan>();
-
-	for (const ban of bans) {
-		if (sortedBans.has(ban.bantime)) {
-			const sortedBan = sortedBans.get(ban.bantime)!;
-
-			if (ban.role && !sortedBan.roles.includes(ban.role)) {
-				sortedBan.roles.push(ban.role);
-			}
-		} else {
-			const roles = [];
-
-			if (ban.role) {
-				roles.push(ban.role);
-			}
-
-			sortedBans.set(ban.bantime, {
-				ckey: ban.ckey,
-				bantime: parseDate(ban.bantime),
-				round_id: ban.round_id,
-				roles,
-				expiration_time: ban.expiration_time
-					? parseDate(ban.expiration_time)
-					: null,
-				reason: ban.reason,
-				admin_ckey: ban.a_ckey,
-				edits: ban.edits,
-			});
-		}
-	}
-
-	return Array.from(sortedBans.values());
 }
