@@ -23,11 +23,12 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 		// const submitter = interaction.message.mentions.users.first(); // this just does not work
 
 		const messageContent = interaction.message.content;
+		const firstLine = messageContent.slice(0, messageContent.indexOf('\n') + 1);
 
-		const submitterId = messageContent.slice(
-			messageContent.indexOf('<@') + 2,
-			messageContent.indexOf('>')
-		);
+		const [submitterId, ckey] =
+			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9]+(?=\)))/g) ?? [];
+
+		if (!submitterId || !ckey) return;
 
 		let submitter: GuildMember;
 
@@ -74,7 +75,7 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 			interaction.client,
 			'submission',
 			`${submitter.user} hesabının başvurusu ${interaction.user} tarafından onaylandı: ${interaction.channel}`,
-			`${submitter.user.displayName} ${submitter.user.username} ${submitter.user.id} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
+			`${submitter.user.displayName} ${submitter.user.username} ${submitter.user.id} ${ckey} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 		);
 	}
 }

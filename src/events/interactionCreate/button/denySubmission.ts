@@ -20,11 +20,12 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 		if (!permissions.has(PermissionFlagsBits.ManageRoles)) return;
 
 		const messageContent = interaction.message.content;
+		const firstLine = messageContent.slice(0, messageContent.indexOf('\n') + 1);
 
-		const submitterId = messageContent.slice(
-			messageContent.indexOf('<@') + 2,
-			messageContent.indexOf('>')
-		);
+		const [submitterId, ckey] =
+			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9]+(?=\)))/g) ?? [];
+
+		if (!submitterId || !ckey) return;
 
 		let submitter: User | null = null;
 
@@ -49,7 +50,7 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 			interaction.client,
 			'submission',
 			`<@${submitterId}> hesabının başvurusu ${interaction.user} tarafından reddedildi: ${interaction.channel}`,
-			`${submitter?.displayName ?? 'unknown-user'} ${submitter?.username ?? 'unknown-user'} ${submitterId} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
+			`${submitter?.displayName ?? 'unknown-user'} ${submitter?.username ?? 'unknown-user'} ${submitterId} ${ckey} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 		);
 	}
 }
