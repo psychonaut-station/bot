@@ -1,6 +1,7 @@
 import {
 	ActionRowBuilder,
 	type ButtonInteraction,
+	MessageFlags,
 	type ModalActionRowComponentBuilder as ModalActionRow,
 	ModalBuilder,
 	TextChannel,
@@ -37,7 +38,7 @@ export class CreateSubmissionButton implements PermanentButtonInteraction {
 
 				await interaction.reply({
 					content: `Mevcut alt başlığına geri eklendin: ${thread}`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 
 				return;
@@ -45,7 +46,7 @@ export class CreateSubmissionButton implements PermanentButtonInteraction {
 
 			await interaction.reply({
 				content: `Mevcut bir alt başlığına sahipsin: ${thread}`,
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 
 			return;

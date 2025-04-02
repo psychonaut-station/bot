@@ -4,6 +4,7 @@ import {
 	ButtonStyle,
 	ChannelType,
 	type MessageActionRowComponentBuilder as MessageActionRow,
+	MessageFlags,
 	type ModalSubmitInteraction,
 	TextChannel,
 	ThreadAutoArchiveDuration,
@@ -32,7 +33,7 @@ export class CreateSubmissionModal implements ModalInteraction {
 		if (!ckey) {
 			await interaction.reply({
 				content: 'BYOND hesabın bulunamadı. Lütfen doğru girdiğinden emin ol.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -66,7 +67,7 @@ export class CreateSubmissionModal implements ModalInteraction {
 
 		await interaction.reply({
 			content: `Başvurun için alt başlık oluşturuldu: ${thread}`,
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 
 		logger.info(

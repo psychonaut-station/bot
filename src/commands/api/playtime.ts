@@ -5,6 +5,7 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	type MessageActionRowComponentBuilder as MessageActionRow,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
@@ -144,7 +145,7 @@ export class ViewPlaytimeCommand implements Command {
 			await interaction.followUp({
 				content:
 					"Hesabını bağlamak için oyun içerisinden `OOC` sekmesindeki `Verify Discord Account`'u kullan.",
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}

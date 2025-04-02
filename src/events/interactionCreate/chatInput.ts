@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
+import { type ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 
 export default async function chatInput(
 	interaction: ChatInputCommandInteraction
@@ -16,7 +16,7 @@ export default async function chatInput(
 			if (interaction.replied) {
 				await interaction.followUp({
 					content: 'There was an error while executing this command!',
-					ephemeral: interaction.ephemeral ?? false,
+					flags: interaction.ephemeral ? MessageFlags.Ephemeral : undefined,
 				});
 			} else if (interaction.deferred) {
 				await interaction.editReply(
@@ -25,7 +25,7 @@ export default async function chatInput(
 			} else {
 				await interaction.reply({
 					content: 'There was an error while executing this command!',
-					ephemeral: interaction.ephemeral ?? false,
+					flags: interaction.ephemeral ? MessageFlags.Ephemeral : undefined,
 				});
 			}
 		} catch {}

@@ -1,6 +1,7 @@
 import {
 	type ButtonInteraction,
 	type GuildMember,
+	MessageFlags,
 	PermissionFlagsBits,
 	type PermissionsBitField,
 } from 'discord.js';
@@ -40,13 +41,13 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 			} catch {
 				await interaction.reply({
 					content: 'Başvuru sahibinin hesabı bulunamadı.',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
 			await interaction.reply({
 				content: 'Başvuru sahibi sunucudan ayrılmış.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}

@@ -1,5 +1,6 @@
 import {
 	type ChatInputCommandInteraction,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
@@ -42,31 +43,34 @@ export class VerifyCommand implements Command {
 
 			await interaction.reply({
 				content: `Discord hesabın \`${ckey}\` adlı BYOND hesabına bağlandı.`,
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 		} else if (statusCode === 404) {
 			if (!verifyRegex.test(code)) {
 				await interaction.reply({
 					content:
 						'Kod şekille uyuşmuyor, lütfen kodu şekle uygun girin.\nÖrneğin: `/verify 123-456`',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
 
-			interaction.reply({ content: 'Kod geçersiz.', ephemeral: true });
+			interaction.reply({
+				content: 'Kod geçersiz.',
+				flags: MessageFlags.Ephemeral,
+			});
 		} else if (statusCode === 409) {
 			const conflict = ckey as any as string;
 
 			if (conflict.startsWith('@')) {
 				await interaction.reply({
 					content: `Bu kod <${conflict}> adlı Discord hesabına bağlı.`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			} else {
 				await interaction.reply({
 					content: `Discord hesabın zaten \`${conflict}\` adlı BYOND hesabına bağlı.`,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 			}
 		}

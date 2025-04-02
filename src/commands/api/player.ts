@@ -1,5 +1,6 @@
 import {
 	type ChatInputCommandInteraction,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
@@ -112,12 +113,12 @@ export class PlayerCommand implements Command {
 
 					await interaction.reply({
 						content: `Ckey: ${player.ckey}\nKullanıcı Adı: ${player.byond_key}\nİlk Görülen: ${firstSeen}\nSon Görülen: ${lastSeen}\nİlk Görülen Round: ${player.first_seen_round}\nSon Görülen Round: ${player.last_seen_round}\nBYOND'a Katıldığı Tarih: ${byondAge}`,
-						ephemeral,
+						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
 				} else if (statusCode === 404) {
 					await interaction.reply({
 						content: 'Oyuncu bulunamadı.',
-						ephemeral,
+						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
 				}
 
@@ -133,7 +134,7 @@ export class PlayerCommand implements Command {
 				if (since && !/^\d{4}-\d{2}-\d{2}$/.test(since)) {
 					await interaction.reply({
 						content: 'Tarih formatı YYYY-MM-DD şeklinde olmalıdır.',
-						ephemeral,
+						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
 					return;
 				}
@@ -146,7 +147,7 @@ export class PlayerCommand implements Command {
 					if (bans.length === 0) {
 						await interaction.reply({
 							content: `Oyuncunun${since ? ` ${timestamp(parseDate(since), 'D')} tarihinden itibaren` : ''}${permanent ? ' kalıcı' : ''} ban geçmişi bulunmamaktadır.`,
-							ephemeral,
+							flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 						});
 						return;
 					}
@@ -162,7 +163,7 @@ export class PlayerCommand implements Command {
 					if (activeBans.length === 0) {
 						await interaction.reply({
 							content: `Oyuncunun${since ? ` ${timestamp(parseDate(since), 'D')} tarihinden itibaren` : ''} aktif${permanent ? ' kalıcı' : ''} banı bulunmamaktadır.`,
-							ephemeral,
+							flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 						});
 						return;
 					}
@@ -181,19 +182,19 @@ export class PlayerCommand implements Command {
 
 					await interaction.reply({
 						content: formatBan(activeBans.shift()!),
-						ephemeral,
+						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
 
 					for (const ban of activeBans) {
 						await interaction.followUp({
 							content: formatBan(ban),
-							ephemeral,
+							flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 						});
 					}
 				} else if (statusCode === 404) {
 					await interaction.reply({
 						content: 'Oyuncu bulunamadı.',
-						ephemeral,
+						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
 				}
 

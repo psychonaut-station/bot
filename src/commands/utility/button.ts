@@ -3,6 +3,7 @@ import {
 	ButtonBuilder,
 	type ChatInputCommandInteraction,
 	type MessageActionRowComponentBuilder as MessageActionRow,
+	MessageFlags,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
@@ -33,7 +34,7 @@ export class ButtonCommand implements Command {
 		if (!interaction.channel?.isSendable()) {
 			await interaction.reply({
 				content: 'Bu kanala mesaj gönderemiyorum.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -43,7 +44,7 @@ export class ButtonCommand implements Command {
 		if (buttons.length === 0) {
 			await interaction.reply({
 				content: 'Buton oluşturmak için en az bir buton gereklidir.',
-				ephemeral: true,
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -58,7 +59,7 @@ export class ButtonCommand implements Command {
 			if (isNaN(styleNumber) || styleNumber < 1 || styleNumber > 5) {
 				await interaction.reply({
 					content: 'Geçersiz buton stili.',
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				});
 				return;
 			}
@@ -78,7 +79,7 @@ export class ButtonCommand implements Command {
 
 		await interaction.reply({
 			content: 'Mesaj oluşturuldu.',
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 	}
 }
