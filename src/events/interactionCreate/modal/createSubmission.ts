@@ -45,7 +45,7 @@ export class CreateSubmissionModal implements ModalInteraction {
 		);
 
 		await thread.send({
-			content: `**Başvuru: ${interaction.user}**\n\n${answers.map((a, i) => `${i + 1}) ${submission.questions[i]}\n${a}`).join('\n\n')}\n­`,
+			content: `**Başvuru: ${interaction.user}**\n\n${answers.map((a, i) => `${i + 1}) ${submission.questions[i]}\n${a}`).join('\n\n')}\nㅤ`,
 			components: [row],
 			allowedMentions: { parse: [] },
 		});
