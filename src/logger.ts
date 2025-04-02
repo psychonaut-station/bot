@@ -9,9 +9,10 @@ import { name } from '@/package';
 type Channel = 'verify' | 'submission';
 type ExtendedLogger = pino.Logger & {
 	channel: (
-		channel: Channel,
 		client: Client,
+		channel: Channel,
 		message: string,
+		subtext?: string,
 		options?: MessageCreateOptions
 	) => Promise<void>;
 };
@@ -39,9 +40,10 @@ async function createLogger() {
 	const logger = pino({ name, level: 'debug' }, multistream) as ExtendedLogger;
 
 	logger.channel = async (
-		channel: Channel,
 		client: Client,
+		channel: Channel,
 		message: string,
+		subtext?: string,
 		options?: MessageCreateOptions
 	) => {
 		try {
@@ -56,13 +58,13 @@ async function createLogger() {
 			}
 
 			await textChannel.send({
-				content: message,
+				content: message + (subtext ? `\n-# ${subtext}` : ''),
 				allowedMentions: { parse: [] },
 				...options,
 			});
 		} catch (error) {
 			logger.error(
-				`There was an error while sending a message to log channel: \`${channel}\`, message: \`${message}\`, error: ${error}`
+				`There was an error while sending a message to log channel: \`${channel}\`, message: \`${message}\`, subtext: \`${subtext}\`, error: ${error}`
 			);
 		}
 	};

@@ -34,9 +34,10 @@ export class VerifyCommand implements Command {
 			);
 
 			logger.channel(
-				'verify',
 				interaction.client,
-				`${user} hesabını \`${ckey}\` adlı BYOND hesabına bağladı.`
+				'verify',
+				`${user} hesabını \`${ckey}\` adlı BYOND hesabına bağladı.`,
+				`${user.displayName} ${user.username} ${user.id} ${ckey}`
 			);
 
 			await interaction.reply({
@@ -119,9 +120,10 @@ export class UnverifyCommand implements Command {
 					);
 
 					logger.channel(
-						'verify',
 						interaction.client,
-						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
+						'verify',
+						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`,
+						`${user.displayName} ${user.username} ${user.id} ${ckey} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 					);
 
 					await interaction.reply(
@@ -149,9 +151,10 @@ export class UnverifyCommand implements Command {
 					);
 
 					logger.channel(
-						'verify',
 						interaction.client,
-						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`
+						'verify',
+						`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabının bağlantısı ${interaction.user} tarafından kaldırıldı.`,
+						`${user.displayName} ${user.username} ${user.id} ${ckey} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 					);
 
 					await interaction.reply(
@@ -202,9 +205,10 @@ export class ForceVerifyCommand implements Command {
 			);
 
 			logger.channel(
-				'verify',
 				interaction.client,
-				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`
+				'verify',
+				`${user} adlı Discord hesabı ile \`${ckey}\` adlı BYOND hesabı ${interaction.user} tarafından bağlandı.`,
+				`${user.displayName} ${user.username} ${user.id} ${ckey} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 			);
 
 			await interaction.reply(

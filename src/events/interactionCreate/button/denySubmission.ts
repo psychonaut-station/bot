@@ -46,9 +46,10 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 		);
 
 		logger.channel(
-			'submission',
 			interaction.client,
-			`<@${submitterId}> hesabının başvurusu ${interaction.user} tarafından reddedildi: ${interaction.channel}`
+			'submission',
+			`<@${submitterId}> hesabının başvurusu ${interaction.user} tarafından reddedildi: ${interaction.channel}`,
+			`${submitter?.displayName ?? 'unknown-user'} ${submitter?.username ?? 'unknown-user'} ${submitterId} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 		);
 	}
 }

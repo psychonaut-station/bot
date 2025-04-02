@@ -71,9 +71,10 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 		);
 
 		logger.channel(
-			'submission',
 			interaction.client,
-			`${submitter.user} hesabının başvurusu ${interaction.user} tarafından onaylandı: ${interaction.channel}`
+			'submission',
+			`${submitter.user} hesabının başvurusu ${interaction.user} tarafından onaylandı: ${interaction.channel}`,
+			`${submitter.user.displayName} ${submitter.user.username} ${submitter.user.id} ${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 		);
 	}
 }

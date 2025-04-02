@@ -63,9 +63,10 @@ export class CreateSubmissionModal implements ModalInteraction {
 		);
 
 		logger.channel(
-			'submission',
 			interaction.client,
-			`${interaction.user} başvuru oluşturdu: ${thread}`
+			'submission',
+			`${interaction.user} başvuru oluşturdu: ${thread}`,
+			`${interaction.user.displayName} ${interaction.user.username} ${interaction.user.id}`
 		);
 	}
 }
