@@ -27,7 +27,6 @@ export class PlaytimeCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('playtime')
 		.setDescription('Oyuncuların rollere ne kadar süre harcadığını gösterir.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('top')
