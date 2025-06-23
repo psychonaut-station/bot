@@ -2,11 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 
 import { TOML } from 'bun';
 
-if (!existsSync('config.toml')) {
-	throw 'Config: config.toml does not exist on cwd';
+const configFile = process.env.CONFIG_FILE || 'config.toml';
+
+if (!existsSync(configFile)) {
+	throw `Config: ${configFile} does not exist`;
 }
 
-const toml = TOML.parse(readFileSync('config.toml', 'utf8')) as {
+const toml = TOML.parse(readFileSync(configFile, 'utf8')) as {
 	bot_token: string;
 	application_id: string;
 	guild_id: string;

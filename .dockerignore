@@ -1,0 +1,12 @@
+Dockerfile
+.dockerignore
+.gitignore
+node_modules
+README.md
+.git
+.github
+.vscode
+.eslintrc.yml
+.prettierignore
+.prettierrc.yml
+config.example.toml
