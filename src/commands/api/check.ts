@@ -28,7 +28,7 @@ type Status =
 			server_status: 0;
 	  };
 
-const CONNECT_URL = 'https://tr-1.ss13.org';
+const CONNECT_URL = 'https://play.ss13.tr';
 
 export class CheckCommand implements Command {
 	public builder = new SlashCommandBuilder()
