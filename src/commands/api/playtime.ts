@@ -202,7 +202,7 @@ async function handlePlaytimePlayerReply(
 
 	let response = await interaction.reply({
 		content,
-		fetchReply: true,
+		withResponse: true,
 		components: [row],
 	});
 
@@ -227,7 +227,7 @@ async function handlePlaytimePlayerReply(
 
 			response = await pagination.update({
 				content,
-				fetchReply: true,
+				withResponse: true,
 				components: [row],
 			});
 		} catch {
