@@ -11,7 +11,5 @@ FROM base AS runner
 COPY --from=deps /app/node_modules node_modules
 COPY . .
 
-ENV CONFIG_FILE=/config/config.toml
-
 USER bun
 ENTRYPOINT [ "bun", "run", "start" ]
