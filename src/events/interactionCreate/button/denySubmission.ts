@@ -23,7 +23,7 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 		const firstLine = messageContent.slice(0, messageContent.indexOf('\n') + 1);
 
 		const [submitterId, ckey] =
-			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9?]+(?=\)))/g) ?? []; // remove ? later
+			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9]+(?=\)))/g) ?? [];
 
 		if (!submitterId || !ckey) return;
 
