@@ -27,7 +27,7 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 		const firstLine = messageContent.slice(0, messageContent.indexOf('\n') + 1);
 
 		const [submitterId, ckey] =
-			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9]+(?=\)))/g) ?? [];
+			firstLine.match(/((?<=<@)[0-9]+(?=>)+|(?<=\()[A-z0-9?]+(?=\)))/g) ?? []; // remove ? later
 
 		if (!submitterId || !ckey) return;
 

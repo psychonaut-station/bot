@@ -28,7 +28,7 @@ export class CreateSubmissionModal implements ModalInteraction {
 			interaction.fields.getTextInputValue(`${customId}F${i}`)
 		);
 
-		const ckey = await findCkey(answers[0]);
+		const ckey = '???'; // byond ddos revert later await findCkey(answers[0]);
 
 		if (!ckey) {
 			await interaction.reply({
