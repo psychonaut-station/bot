@@ -18,17 +18,31 @@ plugins:
 rules:
   '@typescript-eslint/ban-ts-comment': off
   '@typescript-eslint/consistent-type-imports':
-    [error, fixStyle: 'inline-type-imports']
+    - error
+    - fixStyle: 'inline-type-imports'
   '@typescript-eslint/no-explicit-any': off
   '@typescript-eslint/no-unused-vars': warn
   '@typescript-eslint/no-non-null-assertion': off
-  '@typescript-eslint/semi': warn
-  curly: [error, multi-line]
-  eqeqeq: [error, always]
-  linebreak-style: [error, unix]
-  no-empty: [error, allowEmptyCatch: true]
+  curly:
+    - error
+    - multi-line
+  eqeqeq:
+    - error
+    - always
+  linebreak-style:
+    - error
+    - unix
+  no-empty:
+    - error
+    - allowEmptyCatch: true
   no-unused-vars: off
-  quotes: [warn, single, avoidEscape: true]
+  quotes:
+    - warn
+    - single
+    - avoidEscape: true
+  semi:
+    - error
+    - always
   simple-import-sort/imports: error
   simple-import-sort/exports: error
 ignorePatterns:
