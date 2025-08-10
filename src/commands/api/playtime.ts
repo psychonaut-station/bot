@@ -6,6 +6,7 @@ import {
 	type ChatInputCommandInteraction,
 	type MessageActionRowComponentBuilder as MessageActionRow,
 	MessageFlags,
+	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
 
