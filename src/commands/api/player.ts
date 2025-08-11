@@ -103,6 +103,7 @@ export class PlayerCommand implements Command {
 						.setName('ckey')
 						.setDescription('Oyuncunun ckeyi.')
 						.setRequired(true)
+						.setAutocomplete(true)
 				)
 		)
 		.addSubcommand((subcommand) =>
@@ -116,6 +117,7 @@ export class PlayerCommand implements Command {
 						.setName('ckey')
 						.setDescription('Oyuncunun ckeyi.')
 						.setRequired(true)
+						.setAutocomplete(true)
 				)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
