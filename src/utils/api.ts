@@ -30,14 +30,14 @@ export async function get<T>(endpoint: string) {
 	} as Response<T>;
 }
 
-export async function post<T>(endpoint: string, body: any) {
+export async function post<T>(endpoint: string, body?: any) {
 	const response = await request(`${config.api.url}/${endpoint}`, {
 		method: 'POST',
 		headers: {
 			'X-API-KEY': config.api.token,
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(body),
+		body: body ? JSON.stringify(body) : null,
 	});
 
 	if (response.statusCode === 500) {

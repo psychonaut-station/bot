@@ -5,8 +5,9 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
+import logger from '@/logger';
 import type { Command } from '@/types';
-import { get, parseDate, timestamp } from '@/utils';
+import { get, parseDate, post, timestamp } from '@/utils';
 
 interface Player {
 	ckey: string;
@@ -91,6 +92,30 @@ export class PlayerCommand implements Command {
 							{ name: 'Evet', value: 'true' },
 							{ name: 'Hayır', value: 'false' }
 						)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('hide')
+				.setDescription('Oyuncunun hesabını arama sonuçlarından gizler.')
+				.addStringOption((option) =>
+					option
+						.setName('ckey')
+						.setDescription('Oyuncunun ckeyi.')
+						.setRequired(true)
+				)
+		)
+		.addSubcommand((subcommand) =>
+			subcommand
+				.setName('unhide')
+				.setDescription(
+					'Oyuncunun hesabının arama sonuçlarından gizlenmesini kaldırır.'
+				)
+				.addStringOption((option) =>
+					option
+						.setName('ckey')
+						.setDescription('Oyuncunun ckeyi.')
+						.setRequired(true)
 				)
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
@@ -196,6 +221,50 @@ export class PlayerCommand implements Command {
 						content: 'Oyuncu bulunamadı.',
 						flags: ephemeral ? MessageFlags.Ephemeral : undefined,
 					});
+				}
+
+				break;
+			}
+			case 'hide': {
+				const ckey = interaction.options.getString('ckey', true);
+
+				const { statusCode } = await post(
+					`autocomplete/ckey/hide?ckey=${ckey}&hid_by=${interaction.user.id}`
+				);
+
+				if (statusCode === 200) {
+					logger.info(
+						`Hid \`${ckey}\` from autocomplete by [${interaction.user.tag}](${interaction.user.id})`
+					);
+
+					await interaction.reply(`\`${ckey}\` arama sonuçlarından gizlendi.`);
+				} else if (statusCode === 409) {
+					await interaction.reply(
+						`\`${ckey}\` zaten arama sonuçlarından gizlenmiş.`
+					);
+				}
+
+				break;
+			}
+			case 'unhide': {
+				const ckey = interaction.options.getString('ckey', true);
+
+				const { statusCode } = await post(
+					`autocomplete/ckey/unhide?ckey=${ckey}&unhid_by=${interaction.user.id}`
+				);
+
+				if (statusCode === 200) {
+					logger.info(
+						`Unhid \`${ckey}\` from autocomplete by [${interaction.user.tag}](${interaction.user.id})`
+					);
+
+					await interaction.reply(
+						`\`${ckey}\` arama sonuçlarında tekrar görünür hale getirildi.`
+					);
+				} else if (statusCode === 409) {
+					await interaction.reply(
+						`\`${ckey}\` zaten arama sonuçlarından gizlenmemiş.`
+					);
 				}
 
 				break;
