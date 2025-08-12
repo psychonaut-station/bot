@@ -19,7 +19,13 @@ export class ApproveSubmissionButton implements PermanentButtonInteraction {
 
 		const permissions = interaction.member.permissions as PermissionsBitField;
 
-		if (!permissions.has(PermissionFlagsBits.ManageRoles)) return;
+		if (!permissions.has(PermissionFlagsBits.ManageRoles)) {
+			await interaction.reply({
+				content: 'Başvuruyu yetkililerin onaylaması gerekiyor.',
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
 
 		// const submitter = interaction.message.mentions.users.first(); // this just does not work
 

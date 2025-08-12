@@ -1,5 +1,6 @@
 import {
 	type ButtonInteraction,
+	MessageFlags,
 	PermissionFlagsBits,
 	type PermissionsBitField,
 	type User,
@@ -17,7 +18,13 @@ export class DenySubmissionButton implements PermanentButtonInteraction {
 
 		const permissions = interaction.member.permissions as PermissionsBitField;
 
-		if (!permissions.has(PermissionFlagsBits.ManageRoles)) return;
+		if (!permissions.has(PermissionFlagsBits.ManageRoles)) {
+			await interaction.reply({
+				content: 'Başvuruyu yetkililerin reddetmesi gerekiyor.',
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
 
 		const messageContent = interaction.message.content;
 		const firstLine = messageContent.slice(0, messageContent.indexOf('\n') + 1);
