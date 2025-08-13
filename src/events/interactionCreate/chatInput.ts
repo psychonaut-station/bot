@@ -10,6 +10,20 @@ export default async function chatInput(
 	}
 
 	try {
+		if (command.permissionRole) {
+			const member = await interaction.guild?.members.fetch(
+				interaction.user.id
+			);
+
+			if (!member?.roles.cache.has(command.permissionRole)) {
+				await interaction.reply({
+					content: 'Bu komutu kullanmak için gerekli yetkiye sahip değilsin.',
+					flags: MessageFlags.Ephemeral,
+				});
+				return;
+			}
+		}
+
 		await command.execute(interaction);
 	} catch (error) {
 		try {

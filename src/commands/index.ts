@@ -1,5 +1,6 @@
 export * from './api/characters';
 export * from './api/check';
+export * from './api/lookup';
 export * from './api/player';
 export * from './api/playtime';
 export * from './api/verify';

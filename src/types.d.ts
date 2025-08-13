@@ -13,6 +13,7 @@ export interface Command {
 		| SlashCommandSubcommandsOnlyBuilder
 		| SlashCommandOptionsOnlyBuilder
 		| Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+	permissionRole?: string;
 	execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 	autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
