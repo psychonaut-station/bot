@@ -79,6 +79,11 @@ export class LookupCommand implements Command {
 			}
 		}
 
+		if (rows.length === 0) {
+			await interaction.reply('Verilen ile eşleşen hiçbir oyuncu bulunamadı.');
+			return;
+		}
+
 		const longestCkey = rows.reduce(
 			(max, row) => Math.max(max, row[2].length),
 			0
@@ -87,7 +92,7 @@ export class LookupCommand implements Command {
 		// :tf:
 		const message =
 			'```md\n' +
-			`|    CID     |       IP        | ${' '.repeat(Math.floor(longestCkey / 2) - 2)}CKEY${' '.repeat(Math.ceil(longestCkey / 2) - 2)} |\n` +
+			`|    CID     |       IP        | ${' '.repeat(Math.max(Math.floor(longestCkey / 2) - 2, 0))}CKEY${' '.repeat(Math.max(Math.ceil(longestCkey / 2) - 2, 0))} |\n` +
 			`|------------|-----------------|-${'-'.repeat(longestCkey)}-|\n` +
 			rows
 				.map(
