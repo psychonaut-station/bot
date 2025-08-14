@@ -89,18 +89,44 @@ export class LookupCommand implements Command {
 			0
 		);
 
-		// :tf:
-		const message =
+		const messageHeader =
 			'```md\n' +
 			`|    CID     |       IP        | ${' '.repeat(Math.max(Math.floor(longestCkey / 2) - 2, 0))}CKEY${' '.repeat(Math.max(Math.ceil(longestCkey / 2) - 2, 0))} |\n` +
-			`|------------|-----------------|-${'-'.repeat(longestCkey)}-|\n` +
-			rows
-				.map(
-					([cid, ip, ckey]) =>
-						`| ${cid} | ${ip.padEnd(15, ' ')} | ${ckey.padEnd(longestCkey, ' ')} |\n`
-				)
-				.join('') +
-			'```';
+			`|------------|-----------------|-${'-'.repeat(longestCkey)}-|\n`;
+		const messageBody = rows
+			.map(
+				([cid, ip, ckey]) =>
+					`| ${cid} | ${ip.padEnd(15, ' ')} | ${ckey.padEnd(longestCkey, ' ')} |\n`
+			)
+			.join('');
+		const messageFooter = '```';
+
+		const message = messageHeader + messageBody + messageFooter;
+
+		if (message.length > 2000) {
+			const messageParts = [];
+			let currentPart = messageHeader;
+
+			for (const line of messageBody.split('\n')) {
+				if (currentPart.length + line.length + messageFooter.length > 1999) {
+					messageParts.push(currentPart + messageFooter);
+					currentPart = messageHeader + line + '\n';
+				} else {
+					currentPart += line + '\n';
+				}
+			}
+
+			currentPart += messageFooter;
+			messageParts.push(currentPart);
+
+			await interaction.reply(messageParts[0]);
+
+			for (let i = 1; i < messageParts.length; i++) {
+				await interaction.followUp(messageParts[i]);
+			}
+
+			return;
+		}
 
 		await interaction.reply(message);
 	}
