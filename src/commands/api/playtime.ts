@@ -6,7 +6,6 @@ import {
 	type ChatInputCommandInteraction,
 	type MessageActionRowComponentBuilder as MessageActionRow,
 	MessageFlags,
-	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js';
 
@@ -208,10 +207,11 @@ async function handlePlaytimePlayerReply(
 
 	for (;;) {
 		try {
-			const pagination = await response.awaitMessageComponent({
-				filter: (i) => i.user.id === interaction.user.id,
-				time: 60_000,
-			});
+			const pagination =
+				await response.resource!.message!.awaitMessageComponent({
+					filter: (i) => i.user.id === interaction.user.id,
+					time: 60_000,
+				});
 
 			if (pagination.customId === 'playtimeNext') {
 				if (page < maxPage) {
