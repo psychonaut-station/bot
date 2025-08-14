@@ -25,6 +25,7 @@ const toml = TOML.parse(readFileSync(configFile, 'utf8')) as {
 	submission: {
 		questions: string[];
 		role: string;
+		help_thread: string;
 	};
 };
 
@@ -45,6 +46,7 @@ const configuration = {
 	submission: {
 		questions: toml.submission.questions,
 		role: toml.submission.role,
+		helpThread: toml.submission.help_thread,
 	},
 };
 
@@ -132,4 +134,11 @@ if (
 	configuration.submission.role.length === 0
 ) {
 	throw 'Config: application.role is required';
+}
+
+if (
+	typeof configuration.submission.helpThread !== 'string' ||
+	configuration.submission.helpThread.length === 0
+) {
+	throw 'Config: application.help_thread is required';
 }

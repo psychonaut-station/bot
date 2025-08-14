@@ -5,6 +5,7 @@ import type { PermanentButtonInteraction } from '@/types';
 import * as approveSubmission from './approveSubmission';
 import * as createApplication from './createSubmission';
 import * as denySubmission from './denySubmission';
+import * as helpSubmission from './helpSubmission';
 
 const buttonInteractions = new Map<string, PermanentButtonInteraction>();
 
@@ -12,6 +13,7 @@ for (const ButtonInteraction of Object.values({
 	...approveSubmission,
 	...createApplication,
 	...denySubmission,
+	...helpSubmission,
 })) {
 	if (typeof ButtonInteraction === 'function') {
 		const buttonInteraction = new ButtonInteraction();

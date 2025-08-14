@@ -73,7 +73,7 @@ export class ButtonCommand implements Command {
 		}
 
 		await interaction.channel.send({
-			content: message,
+			content: message.replaceAll('\\n', '\n'),
 			components: [row],
 		});
 
