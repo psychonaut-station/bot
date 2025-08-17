@@ -24,6 +24,10 @@ export class CreateSubmissionModal implements ModalInteraction {
 	public async execute(interaction: ModalSubmitInteraction) {
 		if (!(interaction.channel instanceof TextChannel)) return;
 
+		await interaction.deferReply({
+			flags: MessageFlags.Ephemeral,
+		});
+
 		const answers = submission.questions.map((_, i) =>
 			interaction.fields.getTextInputValue(`${customId}F${i}`)
 		);
@@ -31,10 +35,9 @@ export class CreateSubmissionModal implements ModalInteraction {
 		const ckey = await findCkey(answers[0]);
 
 		if (!ckey) {
-			await interaction.reply({
-				content: 'BYOND hesabın bulunamadı. Lütfen doğru girdiğinden emin ol.',
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.editReply(
+				'BYOND hesabın bulunamadı. Lütfen yalnızca senden istenileni doğru girdiğinden emin ol.'
+			);
 			return;
 		}
 
@@ -65,10 +68,9 @@ export class CreateSubmissionModal implements ModalInteraction {
 		await thread.members.add(interaction.user);
 		await thread.leave();
 
-		await interaction.reply({
-			content: `Başvurun için alt başlık oluşturuldu: ${thread}`,
-			flags: MessageFlags.Ephemeral,
-		});
+		await interaction.editReply(
+			`Başvurun için alt başlık oluşturuldu: ${thread}`
+		);
 
 		logger.info(
 			`Created submission for [${interaction.user.tag}](${interaction.user.id})`
