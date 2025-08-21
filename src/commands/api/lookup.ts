@@ -96,7 +96,7 @@ export class LookupCommand implements Command {
 		const messageBody = rows
 			.map(
 				([cid, ip, ckey]) =>
-					`| ${cid} | ${ip.padEnd(15, ' ')} | ${ckey.padEnd(longestCkey, ' ')} |\n`
+					`| ${cid.padEnd(10, ' ')} | ${ip.padEnd(15, ' ')} | ${ckey.padEnd(longestCkey, ' ')} |\n`
 			)
 			.join('');
 		const messageFooter = '```';
