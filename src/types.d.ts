@@ -39,3 +39,17 @@ declare module 'discord.js' {
 		commands: Collection<string, Command>;
 	}
 }
+
+export interface Ban {
+	id: number;
+	bantime: string;
+	round_id: number | null;
+	roles: string | null;
+	expiration_time: string | null;
+	reason: string;
+	ckey: string | null;
+	a_ckey: string;
+	edits: string | null;
+	unbanned_datetime: string | null;
+	unbanned_ckey: string | null;
+}

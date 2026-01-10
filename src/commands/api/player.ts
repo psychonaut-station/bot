@@ -6,8 +6,8 @@ import {
 } from 'discord.js';
 
 import logger from '@/logger';
-import type { Command } from '@/types';
-import { get, parseDate, post, timestamp } from '@/utils';
+import type { Ban, Command } from '@/types';
+import { formatBan, get, parseDate, post, timestamp } from '@/utils';
 
 interface Player {
 	ckey: string;
@@ -19,20 +19,6 @@ interface Player {
 	ip: string;
 	cid: string;
 	byond_age: string | null;
-}
-
-interface Ban {
-	id: number;
-	bantime: string;
-	round_id: number | null;
-	roles: string | null;
-	expiration_time: string | null;
-	reason: string;
-	ckey: string | null;
-	a_ckey: string;
-	edits: string | null;
-	unbanned_datetime: string | null;
-	unbanned_ckey: string | null;
 }
 
 export class PlayerCommand implements Command {
@@ -194,18 +180,6 @@ export class PlayerCommand implements Command {
 						});
 						return;
 					}
-
-					const formatBan = (ban: Ban) => {
-						const bantime = timestamp(parseDate(ban.bantime), 'R');
-						const roundId = ban.round_id ?? 'yok';
-						const roles = ban.roles || 'yok';
-						const expirationTime = ban.expiration_time
-							? timestamp(parseDate(ban.expiration_time), 'R')
-							: 'kalıcı';
-						const edits = ban.edits ?? 'yok';
-
-						return `Ckey: ${ban.ckey}\nBan Tarihi: ${bantime}\nRound ID: ${roundId}\nRoller: ${roles}\nBitiş Tarihi: ${expirationTime}\nSebep: ${ban.reason}\nAdmin Ckey: ${ban.a_ckey}\nDüzenlemeler: ${edits}`;
-					};
 
 					await interaction.reply({
 						content: formatBan(activeBans.shift()!),

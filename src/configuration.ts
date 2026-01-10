@@ -126,7 +126,7 @@ if (
 	!Array.isArray(configuration.submission.questions) ||
 	configuration.submission.questions.length === 0
 ) {
-	throw 'Config: application.questions is required';
+	throw 'Config: submission.questions is required';
 }
 
 if (

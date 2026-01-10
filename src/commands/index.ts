@@ -1,3 +1,4 @@
+export * from './api/ban';
 export * from './api/characters';
 export * from './api/check';
 export * from './api/lookup';
