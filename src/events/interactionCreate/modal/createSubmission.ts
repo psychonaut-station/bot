@@ -96,6 +96,8 @@ async function findCkey(answer: string): Promise<string | null> {
 
 			const ckey = match.toLowerCase();
 
+			if (ckey === 'byond') continue;
+
 			const { body } = await get<{ member: boolean }>(
 				`byond/member?ckey=${ckey}`
 			);
