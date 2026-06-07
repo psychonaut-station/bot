@@ -56,7 +56,7 @@ class GameMemory {
 	private count(db: Database): number {
 		if (!this.entries) {
 			const query = db.query<{ count: number }, never[]>(
-				'SELECT COUNT(*) FROM (SELECT MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey)'
+				'SELECT COUNT(*) AS count FROM (SELECT MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey)'
 			);
 			const count = query.get()?.count;
 
