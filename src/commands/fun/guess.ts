@@ -43,6 +43,7 @@ class GameMemory {
 	private entries = 0;
 
 	static maxSize = 50;
+	static forbidden = ['blob'];
 
 	private remember(character: Character) {
 		if (this.memory.length >= GameMemory.maxSize) {
@@ -75,20 +76,24 @@ class GameMemory {
 			return null;
 		}
 
-		for (let i = 0; i < GameMemory.maxSize; i++) {
+		for (let i = 0; i < count; i++) {
 			const query = db.query<Character, [number]>(
 				'SELECT *, MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey ORDER BY id LIMIT 1 OFFSET ?'
 			);
 			const offset = Math.floor(Math.random() * count);
 			const character = query.get(offset);
 
-			if (character && !this.has(character)) {
+			if (character && !this.has(character) && !this.isForbidden(character)) {
 				this.remember(character);
 				return character;
 			}
 		}
 
 		return null;
+	}
+	private isForbidden(character: Character): boolean {
+		const name = character.name.toLowerCase();
+		return GameMemory.forbidden.some((forbidden) => name.includes(forbidden));
 	}
 }
 
