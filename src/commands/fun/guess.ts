@@ -76,7 +76,7 @@ export class GuessWhoCommand implements Command {
 	private pickRandomCharacter() {
 		if (!this.db) {
 			try {
-				this.db = new Database('guesswho.db', { readonly: true });
+				this.db = new Database('guesswho.db');
 			} catch (error) {
 				logger.error(`Failed to open guesswho.db: ${error}`);
 				return null;
