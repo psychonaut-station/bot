@@ -178,3 +178,4 @@ dist
 config.toml
 
 test.ts
+guesswho.db*
