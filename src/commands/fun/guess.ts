@@ -88,6 +88,10 @@ export class GuessWhoCommand implements Command {
 			}
 		}
 
+		interface CountRow {
+			count: number;
+		}
+
 		interface Row {
 			id: number;
 			icon: string;
@@ -97,9 +101,25 @@ export class GuessWhoCommand implements Command {
 			seen_in_rounds: number;
 		}
 
+		const count = this.db
+			.query<CountRow, never[]>('SELECT COUNT(*) AS count FROM characters')
+			.get()?.count;
+
+		if (!count) {
+			logger.warn('No characters found in the database.');
+			return null;
+		}
+
+		const offset = Math.floor(Math.random() * count);
+
 		const row = this.db
-			.query<Row, never[]>('SELECT * FROM characters ORDER BY RANDOM() LIMIT 1')
-			.get();
+			.query('SELECT * FROM characters ORDER BY id LIMIT 1 OFFSET ?')
+			.get(offset) as Row | null;
+
+		if (!row) {
+			logger.warn('Failed to retrieve a character from the database.');
+			return null;
+		}
 
 		return row;
 	}
