@@ -7,6 +7,7 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
+import logger from '@/logger';
 import type { Command } from '@/types';
 
 let activeGame: ActiveGame | null = null;
@@ -15,7 +16,7 @@ export class GuessWhoCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('guess-who')
 		.setDescription('Kim olduğumu tahmin et!');
-	private db = new Database('guesswho.db', { readonly: true });
+	private db: Database | null = null;
 	public async execute(interaction: ChatInputCommandInteraction) {
 		if (activeGame && !activeGame.finished()) {
 			await interaction.reply(
@@ -73,6 +74,15 @@ export class GuessWhoCommand implements Command {
 		activeGame = new ActiveGame(name, ckey, response, timeout);
 	}
 	private pickRandomCharacter() {
+		if (!this.db) {
+			try {
+				this.db = new Database('guesswho.db', { readonly: true });
+			} catch (error) {
+				logger.error(`Failed to open guesswho.db: ${error}`);
+				return null;
+			}
+		}
+
 		interface Row {
 			id: number;
 			icon: string;
