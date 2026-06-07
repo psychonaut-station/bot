@@ -1,6 +1,7 @@
 bot_token = ""
 application_id = ""
 guild_id = ""
+data_dir = "/app/data"
 
 [log]
 path = "bot.json.log"

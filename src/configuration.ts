@@ -12,6 +12,7 @@ const toml = TOML.parse(readFileSync(configFile, 'utf8')) as {
 	bot_token: string;
 	application_id: string;
 	guild_id: string;
+	data_dir: string;
 	log: {
 		path: string;
 		colorize: boolean;
@@ -33,6 +34,7 @@ const configuration = {
 	botToken: toml.bot_token,
 	applicationId: toml.application_id,
 	guildId: toml.guild_id,
+	dataDir: toml.data_dir,
 	log: {
 		path: toml.log.path,
 		colorize: toml.log.colorize,
@@ -55,6 +57,7 @@ const configuration = {
 export const botToken = configuration.botToken;
 export const applicationId = configuration.applicationId;
 export const guildId = configuration.guildId;
+export const dataDir = configuration.dataDir;
 export const log = configuration.log;
 export const api = configuration.api;
 export const submission = configuration.submission;
@@ -81,6 +84,10 @@ if (
 	configuration.guildId.length === 0
 ) {
 	throw 'Config: guild_id is required';
+}
+
+if (typeof configuration.dataDir !== 'string') {
+	throw 'Config: data_dir is required';
 }
 
 if (
