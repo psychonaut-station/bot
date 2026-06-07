@@ -20,6 +20,7 @@ interface Character {
 	name: string;
 	icon_data: string; // base64-encoded image
 	seen_in_rounds: number;
+	total_rounds: number;
 }
 
 class Lock {
@@ -43,6 +44,7 @@ class GameMemory {
 	private entries = 0;
 
 	static maxSize = 50;
+	static forbidden = ['blob'];
 
 	private remember(character: Character) {
 		if (this.memory.length >= GameMemory.maxSize) {
@@ -56,7 +58,7 @@ class GameMemory {
 	private count(db: Database): number {
 		if (!this.entries) {
 			const query = db.query<{ count: number }, never[]>(
-				'SELECT COUNT(*) AS count FROM (SELECT MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey)'
+				'SELECT COUNT(*) AS count FROM (SELECT 1 FROM characters GROUP BY name, ckey)'
 			);
 			const count = query.get()?.count;
 
@@ -75,20 +77,31 @@ class GameMemory {
 			return null;
 		}
 
-		for (let i = 0; i < GameMemory.maxSize; i++) {
-			const query = db.query<Character, [number]>(
-				'SELECT *, MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey ORDER BY id LIMIT 1 OFFSET ?'
-			);
-			const offset = Math.floor(Math.random() * count);
-			const character = query.get(offset);
+		for (let i = 0; i < count; i++) {
+			const query = db.query<Character, never[]>(`
+				SELECT c2.*, c1.total_rounds
+				FROM (
+					SELECT name, ckey, SUM(seen_in_rounds) AS total_rounds
+					FROM characters
+					GROUP BY name, ckey
+					ORDER BY RANDOM() LIMIT 1
+				) AS c1
+				JOIN characters c2 ON c1.name = c2.name AND c1.ckey = c2.ckey
+				ORDER BY RANDOM() LIMIT 1;
+			`);
+			const character = query.get();
 
-			if (character && !this.has(character)) {
+			if (character && !this.has(character) && !this.isForbidden(character)) {
 				this.remember(character);
 				return character;
 			}
 		}
 
 		return null;
+	}
+	private isForbidden(character: Character): boolean {
+		const name = character.name.toLowerCase();
+		return GameMemory.forbidden.some((forbidden) => name.includes(forbidden));
 	}
 }
 
@@ -131,6 +144,7 @@ export class GuessWhoCommand implements Command {
 				ckey,
 				icon_data: iconData,
 				seen_in_rounds: rounds,
+				total_rounds: totalRounds,
 			} = character;
 
 			const imageBuffer = Buffer.from(
@@ -141,14 +155,7 @@ export class GuessWhoCommand implements Command {
 				attachment: imageBuffer,
 				name: icon,
 			};
-
-			let message = `Bu karakterin kime ait olduğunu tahmin et!\nBu karakteri ${rounds} turda gördük.`;
-
-			if (rounds < 5) {
-				message += `\n\n*İpucu: Karakterin ismi şuna benziyor: ${this.hintName(name, Math.max(4 - rounds, 1))}*`;
-			}
-
-			message += `\n\nOynamak için \`/guess\` komutunu kullanıp tahminini yaz!\nTahmin etmek için ${ActiveGame.gameDuration / 1_000} saniyen var.`;
+			const message = this.prepareMessage(name, rounds, totalRounds);
 
 			const response = await interaction.reply({
 				content: message,
@@ -198,6 +205,20 @@ export class GuessWhoCommand implements Command {
 		}
 
 		return hint.slice(0, -1);
+	}
+	private prepareMessage(name: string, rounds: number, totalRounds: number) {
+		const conjuction = rounds === totalRounds ? 'de' : 'ama';
+
+		let message = `Bu karakterin kime ait olduğunu tahmin et!\n\nKendisini bu görünüşüyle **${rounds}** turda, toplamda ise ${conjuction} **${totalRounds}** turda gördük.`;
+
+		if (rounds < 5) {
+			const reveal = totalRounds < 24 ? Math.max(4 - rounds, 1) : 1;
+			message += `\n\n*İpucu: Karakterin ismi şuna benziyor: ${this.hintName(name, reveal)}*`;
+		}
+
+		message += `\n\nOynamak için \`/guess\` komutunu kullanıp tahminini yaz!\nTahmin etmek için ${ActiveGame.gameDuration / 1_000} saniyen var.`;
+
+		return message;
 	}
 }
 
