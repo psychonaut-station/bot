@@ -95,15 +95,15 @@ for (const file of readdirSync(charactersDir)) {
 			await Bun.file(join(charactersDir, file)).arrayBuffer()
 		);
 		const resized = await imgkit.resize(buffer, {
-			width: 2048,
-			height: 2048,
+			width: 1024,
+			height: 1024,
 			filter: 'nearest',
 		});
 		const cropped = await imgkit.crop(resized, {
-			x: 240,
+			x: 120,
 			y: 0,
-			width: 512,
-			height: 512,
+			width: 256,
+			height: 256,
 		});
 		const png = await imgkit.toPng(cropped, { compression: 9 });
 
