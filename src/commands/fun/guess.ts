@@ -12,12 +12,12 @@ let activeGame: ActiveGame | null = null;
 export class GuessWhoCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('guess-who')
-		.setDescription('Guess who I am!');
+		.setDescription('Kim olduğumu tahmin et!');
 	private db = new Database('guesswho.db', { readonly: true });
 	public async execute(interaction: ChatInputCommandInteraction) {
 		if (activeGame && !activeGame.finished()) {
 			await interaction.reply(
-				`There is already an active game. Please wait ${activeGame.leftSecs().toFixed(1)}s.`
+				`Zaten aktif bir oyun var. Lütfen ${activeGame.leftSecs().toFixed(1)} saniye bekle.`
 			);
 			return;
 		}
@@ -25,7 +25,7 @@ export class GuessWhoCommand implements Command {
 		const character = this.pickRandomCharacter();
 
 		if (!character) {
-			await interaction.reply('No characters found in the database.');
+			await interaction.reply('Veritabanında hiç karakter bulunamadı.');
 			return;
 		}
 
@@ -46,13 +46,13 @@ export class GuessWhoCommand implements Command {
 			name: icon,
 		};
 
-		let message = `Guess who this character belongs to!\nWe have seen this character in ${rounds} round(s).`;
+		let message = `Bu karakterin kime ait olduğunu tahmin et!\nBu karakteri ${rounds} turda gördük.`;
 
 		if (rounds < 5) {
-			message += `\n\n*Hint: The character's name looks like: ${this.hintName(name, Math.max(4 - rounds, 1))}*`;
+			message += `\n\n*İpucu: Karakterin ismi şuna benziyor: ${this.hintName(name, Math.max(4 - rounds, 1))}*`;
 		}
 
-		message += `\n\nType \`/guess\` followed by your guess to play!\nYou have ${ActiveGame.gameDuration / 1_000} seconds to guess.`;
+		message += `\n\nOynamak için \`/guess\` komutunu kullanıp tahminini yaz!\nTahmin etmek için ${ActiveGame.gameDuration / 1_000} saniyen var.`;
 
 		const response = await interaction.reply({
 			content: message,
@@ -66,7 +66,7 @@ export class GuessWhoCommand implements Command {
 			if (activeGame && !activeGame.guessed) {
 				try {
 					await activeGame.response.resource?.message?.reply(
-						`Time's up! The character was ${name}, belonging to **${ckey}**.`
+						`Süre doldu! Karakter **${ckey}** oyuncusuna ait olan ${name} idi.`
 					);
 				} catch {}
 			}
@@ -110,7 +110,7 @@ export class GuessWhoCommand implements Command {
 export class GuessCommand implements Command {
 	public builder = new SlashCommandBuilder()
 		.setName('guess')
-		.setDescription('Replies with Pong!')
+		.setDescription('Aktif oyunda karakterin sahibini tahmin et')
 		.addStringOption((option) =>
 			option
 				.setName('ckey')
@@ -120,7 +120,7 @@ export class GuessCommand implements Command {
 		);
 	public async execute(interaction: ChatInputCommandInteraction) {
 		if (!activeGame || activeGame.finished()) {
-			await interaction.reply('There is no active game.');
+			await interaction.reply('Aktif bir oyun yok.');
 			return;
 		}
 
@@ -129,16 +129,16 @@ export class GuessCommand implements Command {
 		if (activeGame.guess(guess)) {
 			const message = activeGame.response.resource?.message;
 
-			await interaction.reply('Correct! You guessed the character!');
+			await interaction.reply('Doğru! Karakteri tahmin ettin!');
 
 			try {
 				await message?.reply({
-					content: `The character was ${activeGame.name}, belonging to **${activeGame.ckey}**.\nIt was guessed correctly by **${interaction.user}**!`,
+					content: `Karakter **${activeGame.ckey}** oyuncusuna ait olan ${activeGame.name} idi.\n**${interaction.user}** doğru tahmin etti!`,
 					allowedMentions: { parse: [] },
 				});
 			} catch {}
 		} else {
-			await interaction.reply('Wrong guess!');
+			await interaction.reply('Yanlış tahmin!');
 		}
 	}
 }
