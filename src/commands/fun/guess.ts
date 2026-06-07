@@ -264,9 +264,11 @@ class ActiveGame {
 				return;
 			}
 
-			await this.reply(
-				`Süre doldu! Karakter **${this.ckey}** oyuncusuna ait olan ${this.name} idi.`
-			);
+			try {
+				await this.reply(
+					`Süre doldu! Karakter **${this.ckey}** oyuncusuna ait olan ${this.name} idi.`
+				);
+			} catch {}
 		}, ActiveGame.gameDuration + 500);
 	}
 	clearTimeout() {
