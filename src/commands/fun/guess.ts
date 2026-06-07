@@ -13,7 +13,24 @@ import { dataDir } from '@/configuration';
 import logger from '@/logger';
 import type { Command } from '@/types';
 
+class Lock {
+	private locked = false;
+
+	tryAcquire() {
+		if (this.locked) {
+			return null;
+		}
+
+		this.locked = true;
+
+		return () => {
+			this.locked = false;
+		};
+	}
+}
+
 let activeGame: ActiveGame | null = null;
+const gameLock = new Lock();
 
 export class GuessWhoCommand implements Command {
 	public builder = new SlashCommandBuilder()
@@ -21,60 +38,64 @@ export class GuessWhoCommand implements Command {
 		.setDescription('Kim olduğumu tahmin et!');
 	private db: Database | null = null;
 	public async execute(interaction: ChatInputCommandInteraction) {
-		if (activeGame && !activeGame.finished()) {
-			await interaction.reply(
-				`Zaten aktif bir oyun var. Lütfen ${activeGame.leftSecs().toFixed(1)} saniye bekle.`
-			);
+		const release = gameLock.tryAcquire();
+
+		if (!release) {
+			await interaction.reply('Oyun başlıyor. Lütfen biraz bekle.');
 			return;
 		}
 
-		const character = this.pickRandomCharacter();
-
-		if (!character) {
-			await interaction.reply('Veritabanında hiç karakter bulunamadı.');
-			return;
-		}
-
-		const {
-			icon,
-			name,
-			ckey,
-			icon_data: iconData,
-			seen_in_rounds: rounds,
-		} = character;
-
-		const imageBuffer = Buffer.from(
-			iconData.slice('data:image/png;base64,'.length),
-			'base64'
-		);
-		const attachment = {
-			attachment: imageBuffer,
-			name: icon,
-		};
-
-		let message = `Bu karakterin kime ait olduğunu tahmin et!\nBu karakteri ${rounds} turda gördük.`;
-
-		if (rounds < 5) {
-			message += `\n\n*İpucu: Karakterin ismi şuna benziyor: ${this.hintName(name, Math.max(4 - rounds, 1))}*`;
-		}
-
-		message += `\n\nOynamak için \`/guess\` komutunu kullanıp tahminini yaz!\nTahmin etmek için ${ActiveGame.gameDuration / 1_000} saniyen var.`;
-
-		const response = await interaction.reply({
-			content: message,
-			files: [attachment],
-			withResponse: true,
-		});
-
-		const timeout = setTimeout(async () => {
-			if (activeGame && !activeGame.guessed) {
-				await activeGame.reply(
-					`Süre doldu! Karakter **${ckey}** oyuncusuna ait olan ${name} idi.`
+		try {
+			if (activeGame && !activeGame.finished()) {
+				await interaction.reply(
+					`Zaten aktif bir oyun var. Lütfen ${activeGame.leftSecs().toFixed(1)} saniye bekle.`
 				);
+				return;
 			}
-		}, ActiveGame.gameDuration + 500);
 
-		activeGame = new ActiveGame(name, ckey, response, timeout);
+			const character = this.pickRandomCharacter();
+
+			if (!character) {
+				await interaction.reply('Veritabanında hiç karakter bulunamadı.');
+				return;
+			}
+
+			const {
+				icon,
+				name,
+				ckey,
+				icon_data: iconData,
+				seen_in_rounds: rounds,
+			} = character;
+
+			const imageBuffer = Buffer.from(
+				iconData.slice('data:image/png;base64,'.length),
+				'base64'
+			);
+			const attachment = {
+				attachment: imageBuffer,
+				name: icon,
+			};
+
+			let message = `Bu karakterin kime ait olduğunu tahmin et!\nBu karakteri ${rounds} turda gördük.`;
+
+			if (rounds < 5) {
+				message += `\n\n*İpucu: Karakterin ismi şuna benziyor: ${this.hintName(name, Math.max(4 - rounds, 1))}*`;
+			}
+
+			message += `\n\nOynamak için \`/guess\` komutunu kullanıp tahminini yaz!\nTahmin etmek için ${ActiveGame.gameDuration / 1_000} saniyen var.`;
+
+			const response = await interaction.reply({
+				content: message,
+				files: [attachment],
+				withResponse: true,
+			});
+
+			activeGame = new ActiveGame(name, ckey, response, interaction.user.id);
+			activeGame.startTimeout();
+		} finally {
+			release();
+		}
 	}
 	private pickRandomCharacter() {
 		if (!this.db) {
@@ -88,6 +109,10 @@ export class GuessWhoCommand implements Command {
 			}
 		}
 
+		interface CountRow {
+			count: number;
+		}
+
 		interface Row {
 			id: number;
 			icon: string;
@@ -97,9 +122,25 @@ export class GuessWhoCommand implements Command {
 			seen_in_rounds: number;
 		}
 
+		const count = this.db
+			.query<CountRow, never[]>('SELECT COUNT(*) AS count FROM characters')
+			.get()?.count;
+
+		if (!count) {
+			logger.warn('No characters found in the database.');
+			return null;
+		}
+
+		const offset = Math.floor(Math.random() * count);
+
 		const row = this.db
-			.query<Row, never[]>('SELECT * FROM characters ORDER BY RANDOM() LIMIT 1')
-			.get();
+			.query('SELECT * FROM characters ORDER BY id LIMIT 1 OFFSET ?')
+			.get(offset) as Row | null;
+
+		if (!row) {
+			logger.warn('Failed to retrieve a character from the database.');
+			return null;
+		}
 
 		return row;
 	}
@@ -142,7 +183,7 @@ export class GuessCommand implements Command {
 		const guess = interaction.options.getString('ckey', true);
 
 		if (activeGame.guess(guess)) {
-			clearTimeout(activeGame.timeout);
+			activeGame.clearTimeout();
 
 			await interaction.reply('Doğru! Karakteri tahmin ettin!');
 			await activeGame.reply({
@@ -155,13 +196,40 @@ export class GuessCommand implements Command {
 	}
 }
 
+export class GuessSkipCommand implements Command {
+	public builder = new SlashCommandBuilder()
+		.setName('guess-skip')
+		.setDescription('Aktif oyunu atla ve cevabı gör');
+	public async execute(interaction: ChatInputCommandInteraction) {
+		if (!activeGame || activeGame.finished()) {
+			await interaction.reply('Aktif bir oyun yok.');
+			return;
+		}
+
+		if (activeGame.startedBy !== interaction.user.id) {
+			await interaction.reply(
+				'Sadece oyunu başlatan kişi bu komutu kullanabilir.'
+			);
+			return;
+		}
+
+		activeGame.guessed = true;
+		activeGame.clearTimeout();
+
+		await interaction.reply(
+			`Oyun atlandı! Karakter **${activeGame.ckey}** oyuncusuna ait olan ${activeGame.name} idi.`
+		);
+	}
+}
+
 class ActiveGame {
 	name: string;
 	ckey: string;
 	response: InteractionCallbackResponse;
 	timestamp: number;
 	guessed = false;
-	timeout: NodeJS.Timeout;
+	startedBy: string;
+	private timeout: NodeJS.Timeout | null = null;
 
 	static gameDuration = 60_000; // 60 seconds
 
@@ -169,13 +237,13 @@ class ActiveGame {
 		name: string,
 		ckey: string,
 		response: InteractionCallbackResponse,
-		timeout: NodeJS.Timeout
+		startedBy: string
 	) {
 		this.name = name;
 		this.ckey = ckey.toLowerCase();
 		this.response = response;
 		this.timestamp = Date.now();
-		this.timeout = timeout;
+		this.startedBy = startedBy;
 	}
 
 	guess(ckey: string) {
@@ -189,6 +257,25 @@ class ActiveGame {
 	}
 	leftSecs() {
 		return Math.max(0, (ActiveGame.gameDuration - this.elapsed()) / 1_000);
+	}
+	startTimeout() {
+		this.timeout = setTimeout(async () => {
+			if (activeGame !== this || this.guessed) {
+				return;
+			}
+
+			try {
+				await this.reply(
+					`Süre doldu! Karakter **${this.ckey}** oyuncusuna ait olan ${this.name} idi.`
+				);
+			} catch {}
+		}, ActiveGame.gameDuration + 500);
+	}
+	clearTimeout() {
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = null;
+		}
 	}
 	async reply(content: string | MessagePayload | MessageReplyOptions) {
 		try {
