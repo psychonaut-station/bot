@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+
 import { Database } from 'bun:sqlite';
 import {
 	type ChatInputCommandInteraction,
@@ -7,6 +9,7 @@ import {
 	SlashCommandBuilder,
 } from 'discord.js';
 
+import { dataDir } from '@/configuration';
 import logger from '@/logger';
 import type { Command } from '@/types';
 
@@ -76,7 +79,9 @@ export class GuessWhoCommand implements Command {
 	private pickRandomCharacter() {
 		if (!this.db) {
 			try {
-				this.db = new Database('guesswho.db', { readonly: true });
+				this.db = new Database(join(dataDir, 'guesswho.db'), {
+					readonly: true,
+				});
 			} catch (error) {
 				logger.error(`Failed to open guesswho.db: ${error}`);
 				return null;
