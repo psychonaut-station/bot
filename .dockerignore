@@ -10,3 +10,4 @@ README.md
 .prettierignore
 .prettierrc.yml
 config.example.toml
+tools
