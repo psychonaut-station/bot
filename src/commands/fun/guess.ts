@@ -56,7 +56,7 @@ class GameMemory {
 	private count(db: Database): number {
 		if (!this.entries) {
 			const query = db.query<{ count: number }, never[]>(
-				'SELECT COUNT(*) AS count FROM characters'
+				'SELECT COUNT(*) FROM (SELECT MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey)'
 			);
 			const count = query.get()?.count;
 
@@ -77,7 +77,7 @@ class GameMemory {
 
 		for (let i = 0; i < GameMemory.maxSize; i++) {
 			const query = db.query<Character, [number]>(
-				'SELECT * FROM characters ORDER BY id LIMIT 1 OFFSET ?'
+				'SELECT *, MAX(seen_in_rounds), MAX(id) FROM characters GROUP BY name, ckey ORDER BY id LIMIT 1 OFFSET ?'
 			);
 			const offset = Math.floor(Math.random() * count);
 			const character = query.get(offset);
