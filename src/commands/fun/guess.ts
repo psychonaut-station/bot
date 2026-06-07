@@ -207,9 +207,9 @@ export class GuessWhoCommand implements Command {
 		return hint.slice(0, -1);
 	}
 	private prepareMessage(name: string, rounds: number, totalRounds: number) {
-		const conjuction = rounds === totalRounds ? ' de' : ' ama';
+		const conjuction = rounds === totalRounds ? 'de' : 'ama';
 
-		let message = `Bu karakterin kime ait olduğunu tahmin et!\n\nKendisini bu görünüşüyle **${rounds}** turda, toplamda ise${conjuction} **${totalRounds}** turda gördük.`;
+		let message = `Bu karakterin kime ait olduğunu tahmin et!\n\nKendisini bu görünüşüyle **${rounds}** turda, toplamda ise ${conjuction} **${totalRounds}** turda gördük.`;
 
 		if (rounds < 5) {
 			const reveal = totalRounds < 24 ? Math.max(4 - rounds, 1) : 1;
