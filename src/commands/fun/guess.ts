@@ -2,6 +2,8 @@ import { Database } from 'bun:sqlite';
 import {
 	type ChatInputCommandInteraction,
 	type InteractionCallbackResponse,
+	type MessagePayload,
+	type MessageReplyOptions,
 	SlashCommandBuilder,
 } from 'discord.js';
 
@@ -60,17 +62,15 @@ export class GuessWhoCommand implements Command {
 			withResponse: true,
 		});
 
-		activeGame = new ActiveGame(name, ckey, response);
-
-		setTimeout(async () => {
+		const timeout = setTimeout(async () => {
 			if (activeGame && !activeGame.guessed) {
-				try {
-					await activeGame.response.resource?.message?.reply(
-						`Süre doldu! Karakter **${ckey}** oyuncusuna ait olan ${name} idi.`
-					);
-				} catch {}
+				await activeGame.reply(
+					`Süre doldu! Karakter **${ckey}** oyuncusuna ait olan ${name} idi.`
+				);
 			}
 		}, ActiveGame.gameDuration + 500);
+
+		activeGame = new ActiveGame(name, ckey, response, timeout);
 	}
 	private pickRandomCharacter() {
 		interface Row {
@@ -127,16 +127,13 @@ export class GuessCommand implements Command {
 		const guess = interaction.options.getString('ckey', true);
 
 		if (activeGame.guess(guess)) {
-			const message = activeGame.response.resource?.message;
+			clearTimeout(activeGame.timeout);
 
 			await interaction.reply('Doğru! Karakteri tahmin ettin!');
-
-			try {
-				await message?.reply({
-					content: `Karakter **${activeGame.ckey}** oyuncusuna ait olan ${activeGame.name} idi.\n**${interaction.user}** doğru tahmin etti!`,
-					allowedMentions: { parse: [] },
-				});
-			} catch {}
+			await activeGame.reply({
+				content: `Karakter **${activeGame.ckey}** oyuncusuna ait olan ${activeGame.name} idi.\n**${interaction.user}** doğru tahmin etti!`,
+				allowedMentions: { parse: [] },
+			});
 		} else {
 			await interaction.reply('Yanlış tahmin!');
 		}
@@ -149,18 +146,21 @@ class ActiveGame {
 	response: InteractionCallbackResponse;
 	timestamp: number;
 	guessed = false;
+	timeout: NodeJS.Timeout;
 
 	static gameDuration = 60_000; // 60 seconds
 
 	constructor(
 		name: string,
 		ckey: string,
-		response: InteractionCallbackResponse
+		response: InteractionCallbackResponse,
+		timeout: NodeJS.Timeout
 	) {
 		this.name = name;
 		this.ckey = ckey.toLowerCase();
 		this.response = response;
 		this.timestamp = Date.now();
+		this.timeout = timeout;
 	}
 
 	guess(ckey: string) {
@@ -170,9 +170,14 @@ class ActiveGame {
 		return Date.now() - this.timestamp;
 	}
 	finished() {
-		return this.elapsed() > ActiveGame.gameDuration;
+		return this.guessed || this.elapsed() > ActiveGame.gameDuration;
 	}
 	leftSecs() {
 		return Math.max(0, (ActiveGame.gameDuration - this.elapsed()) / 1_000);
+	}
+	async reply(content: string | MessagePayload | MessageReplyOptions) {
+		try {
+			await this.response.resource?.message?.reply(content);
+		} catch {}
 	}
 }
