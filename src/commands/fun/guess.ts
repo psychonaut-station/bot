@@ -12,6 +12,7 @@ import {
 import { dataDir } from '@/configuration';
 import logger from '@/logger';
 import type { Command } from '@/types';
+
 class Lock {
 	private locked = false;
 
