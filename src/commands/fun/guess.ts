@@ -90,7 +90,7 @@ export class GuessWhoCommand implements Command {
 				withResponse: true,
 			});
 
-			activeGame = new ActiveGame(name, ckey, response);
+			activeGame = new ActiveGame(name, ckey, response, interaction.user.id);
 			activeGame.startTimeout();
 		} finally {
 			release();
@@ -195,12 +195,39 @@ export class GuessCommand implements Command {
 	}
 }
 
+export class GuessSkipCommand implements Command {
+	public builder = new SlashCommandBuilder()
+		.setName('guess-skip')
+		.setDescription('Aktif oyunu atla ve cevabı gör');
+	public async execute(interaction: ChatInputCommandInteraction) {
+		if (!activeGame || activeGame.finished()) {
+			await interaction.reply('Aktif bir oyun yok.');
+			return;
+		}
+
+		if (activeGame.startedBy !== interaction.user.id) {
+			await interaction.reply(
+				'Sadece oyunu başlatan kişi bu komutu kullanabilir.'
+			);
+			return;
+		}
+
+		activeGame.guessed = true;
+		activeGame.clearTimeout();
+
+		await interaction.reply(
+			`Oyun atlandı! Karakter **${activeGame.ckey}** oyuncusuna ait olan ${activeGame.name} idi.`
+		);
+	}
+}
+
 class ActiveGame {
 	name: string;
 	ckey: string;
 	response: InteractionCallbackResponse;
 	timestamp: number;
 	guessed = false;
+	startedBy: string;
 	private timeout: NodeJS.Timeout | null = null;
 
 	static gameDuration = 60_000; // 60 seconds
@@ -208,12 +235,14 @@ class ActiveGame {
 	constructor(
 		name: string,
 		ckey: string,
-		response: InteractionCallbackResponse
+		response: InteractionCallbackResponse,
+		startedBy: string
 	) {
 		this.name = name;
 		this.ckey = ckey.toLowerCase();
 		this.response = response;
 		this.timestamp = Date.now();
+		this.startedBy = startedBy;
 	}
 
 	guess(ckey: string) {
