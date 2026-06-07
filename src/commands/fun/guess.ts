@@ -13,6 +13,15 @@ import { dataDir } from '@/configuration';
 import logger from '@/logger';
 import type { Command } from '@/types';
 
+interface Character {
+	id: number;
+	icon: string;
+	ckey: string;
+	name: string;
+	icon_data: string; // base64-encoded image
+	seen_in_rounds: number;
+}
+
 class Lock {
 	private locked = false;
 
@@ -29,7 +38,63 @@ class Lock {
 	}
 }
 
+class GameMemory {
+	private memory: string[] = [];
+	private entries = 0;
+
+	static maxSize = 50;
+
+	private remember(character: Character) {
+		if (this.memory.length >= GameMemory.maxSize) {
+			this.memory.shift();
+		}
+		this.memory.push(`${character.name}_${character.ckey}`);
+	}
+	private has(character: Character): boolean {
+		return this.memory.includes(`${character.name}_${character.ckey}`);
+	}
+	private count(db: Database): number {
+		if (!this.entries) {
+			const query = db.query<{ count: number }, never[]>(
+				'SELECT COUNT(*) AS count FROM characters'
+			);
+			const count = query.get()?.count;
+
+			if (!count) {
+				logger.warn('No characters found in the database.');
+			}
+
+			this.entries = count ?? 0;
+		}
+		return this.entries;
+	}
+	public pickRandom(db: Database): Character | null {
+		const count = this.count(db);
+
+		if (count === 0) {
+			return null;
+		}
+
+		for (let i = 0; i < GameMemory.maxSize; i++) {
+			const query = db.query<Character, [number]>(
+				'SELECT * FROM characters ORDER BY id LIMIT 1 OFFSET ?'
+			);
+			const offset = Math.floor(Math.random() * count);
+			const character = query.get(offset);
+
+			if (character && !this.has(character)) {
+				this.remember(character);
+				return character;
+			}
+		}
+
+		return null;
+	}
+}
+
 let activeGame: ActiveGame | null = null;
+
+const memory = new GameMemory();
 const gameLock = new Lock();
 
 export class GuessWhoCommand implements Command {
@@ -109,40 +174,13 @@ export class GuessWhoCommand implements Command {
 			}
 		}
 
-		interface CountRow {
-			count: number;
+		const character = memory.pickRandom(this.db);
+
+		if (!character) {
+			logger.warn('Failed to pick a random character from the database.');
 		}
 
-		interface Row {
-			id: number;
-			icon: string;
-			ckey: string;
-			name: string;
-			icon_data: string; // base64-encoded image
-			seen_in_rounds: number;
-		}
-
-		const count = this.db
-			.query<CountRow, never[]>('SELECT COUNT(*) AS count FROM characters')
-			.get()?.count;
-
-		if (!count) {
-			logger.warn('No characters found in the database.');
-			return null;
-		}
-
-		const offset = Math.floor(Math.random() * count);
-
-		const row = this.db
-			.query('SELECT * FROM characters ORDER BY id LIMIT 1 OFFSET ?')
-			.get(offset) as Row | null;
-
-		if (!row) {
-			logger.warn('Failed to retrieve a character from the database.');
-			return null;
-		}
-
-		return row;
+		return character;
 	}
 	private hintName(name: string, reveal: number) {
 		if (reveal === 0) {
