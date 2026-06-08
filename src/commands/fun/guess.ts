@@ -44,7 +44,14 @@ class GameMemory {
 	private entries = 0;
 
 	static maxSize = 50;
-	static forbidden = ['blob'];
+	static forbidden: string[] = [
+		'blob ',
+		'blobbernaut ',
+		'shade of ',
+		'monkey ',
+		'default cyborg',
+		'peacekeeper cyborg',
+	];
 
 	private remember(character: Character) {
 		if (this.memory.length >= GameMemory.maxSize) {
@@ -101,7 +108,7 @@ class GameMemory {
 	}
 	private isForbidden(character: Character): boolean {
 		const name = character.name.toLowerCase();
-		return GameMemory.forbidden.some((forbidden) => name.includes(forbidden));
+		return GameMemory.forbidden.some((forbidden) => name.startsWith(forbidden));
 	}
 }
 
