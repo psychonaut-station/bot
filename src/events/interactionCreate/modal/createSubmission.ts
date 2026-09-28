@@ -98,13 +98,7 @@ async function findCkey(answer: string): Promise<string | null> {
 
 			if (ckey === 'byond') continue;
 
-			const { body } = await get<{ member: boolean }>(
-				`byond/member?ckey=${ckey}`
-			);
-
-			if (body && body.member) {
-				return ckey;
-			}
+			return ckey;
 		}
 	}
 
