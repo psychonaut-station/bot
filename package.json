@@ -3,7 +3,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "tsc && bun run src/index.ts",
+    "start": "bun src/index.ts",
     "watch": "tsc && bun run --watch src/index.ts",
     "build": "tsc && bun build src/index.ts --compile --outfile dist/bot",
     "lint": "eslint .",

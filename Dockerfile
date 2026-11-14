@@ -11,11 +11,8 @@ FROM base AS runner
 COPY --from=deps /app/node_modules node_modules
 COPY . .
 
-RUN mkdir -p /app/data && \
-	chown -R bun:bun /app/data
-
 USER bun
-ENTRYPOINT [ "bun", "run", "start" ]
+ENTRYPOINT [ "bun", "src/index.ts" ]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 	CMD pgrep -f "bun" || exit 1

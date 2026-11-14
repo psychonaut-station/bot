@@ -26,6 +26,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The image no longer type checks on start, so a type error must not be published
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Type check
+        run: bunx tsc
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
